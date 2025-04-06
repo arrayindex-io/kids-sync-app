@@ -4,7 +4,7 @@ A Spring Boot application for managing children's schedules and activities with 
 
 ## About
 
-Developed by [Anurag Saxena](https://www.arrayindex.com) at [ArrayIndex Canada Inc.](https://www.arrayindex.com)
+Developed by [Anurag Saxena](https://arrayindex-website-react.onrender.com/) at [ArrayIndex Canada Inc.](https://arrayindex-website-react.onrender.com/)
 
 ## Features
 
@@ -108,7 +108,7 @@ backend/
 
 ## Contact
 
-For any queries or support, please visit [www.arrayindex.com](https://www.arrayindex.com)
+For any queries or support, please visit [arrayindex-website-react.onrender.com](https://arrayindex-website-react.onrender.com/)
 
 ## License
 
