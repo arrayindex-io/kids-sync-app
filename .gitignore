@@ -34,10 +34,23 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
 .env.*.local
+.env.development
+.env.test
+.env.production
+application-local.properties
+application-dev.properties
+application-prod.properties
+secrets/
+credentials/
+*.pem
+*.key
+*.jks
+*.keystore
+*.truststore
 
 # OS-specific files
 .DS_Store

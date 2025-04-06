@@ -43,10 +43,10 @@ Developed by [Anurag Saxena](https://www.arrayindex.com) at [ArrayIndex Canada I
    docker-compose up -d
    ```
 
-3. Create a `.env` file in the backend directory with the following content:
-   ```
-   JWT_SECRET=your_secure_jwt_secret_here
-   ```
+3. Set up environment variables:
+   - Copy the example environment file: `cp backend/.env.example backend/.env`
+   - Edit the `.env` file with your actual configuration values
+   - **IMPORTANT**: Never commit the `.env` file to version control
 
 4. Build and run the application:
    ```bash
@@ -55,6 +55,23 @@ Developed by [Anurag Saxena](https://www.arrayindex.com) at [ArrayIndex Canada I
    ```
 
 The application will be available at `http://localhost:8080`
+
+## Environment Variables
+
+The application uses environment variables for configuration. These are stored in a `.env` file in the backend directory. A sample file `.env.example` is provided as a template.
+
+Key environment variables:
+- `JWT_SECRET`: Secret key for JWT token generation
+- `MONGODB_URI`: MongoDB connection string
+- `EMAIL_*`: Email configuration for reminders
+- `WHATSAPP_*`: WhatsApp API configuration
+
+## Security Notes
+
+- All sensitive information is stored in environment variables
+- The `.env` file is excluded from version control
+- JWT secrets and API keys should be kept secure and never committed to the repository
+- For production deployments, use a secure secrets management solution
 
 ## API Endpoints
 
