@@ -10,13 +10,35 @@ import java.util.List;
 @Repository
 public interface EventRepository extends MongoRepository<Event, String> {
 
-    // Find events for a specific user within a given time range
+    /**
+     * Find events for a specific user within a given time range
+     * @param userId The ID of the user
+     * @param start The start date
+     * @param end The end date
+     * @return List of events
+     */
     List<Event> findByUserIdAndDateTimeBetween(String userId, LocalDateTime start, LocalDateTime end);
 
-    // Find all events within a given time range (needed for initial reminder implementation)
-    // Note: This needs refinement to associate events with users for targeted reminders.
+    /**
+     * Find all events within a given time range
+     * @param start The start date
+     * @param end The end date
+     * @return List of events
+     */
     List<Event> findByDateTimeBetween(LocalDateTime start, LocalDateTime end);
 
-    // Find events for a specific user
+    /**
+     * Find all events for a specific user
+     * @param userId The ID of the user
+     * @return List of events
+     */
     List<Event> findByUserId(String userId);
+
+    /**
+     * Find all upcoming events for a specific user
+     * @param userId The ID of the user
+     * @param dateTime The current date and time
+     * @return List of upcoming events
+     */
+    List<Event> findByUserIdAndDateTimeGreaterThan(String userId, LocalDateTime dateTime);
 } 

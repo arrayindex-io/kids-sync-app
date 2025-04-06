@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // Enable scheduled tasks like reminders
+@EnableScheduling
 public class KidsyncApplication {
 
 	public static void main(String[] args) {

@@ -1,89 +1,155 @@
 # Kids Sync App
 
-A Spring Boot application for managing children's schedules and activities with WhatsApp integration for reminders.
-
-## About
-
-Developed by [Anurag Saxena](https://arrayindex-website-react.onrender.com/) at [ArrayIndex Canada Inc.](https://arrayindex-website-react.onrender.com/)
+A Spring Boot application for managing kids' activities and schedules with WhatsApp integration.
 
 ## Features
 
 - User authentication with JWT
-- Event management for children's activities
-- WhatsApp integration for reminders
-- MongoDB for data persistence
+- Event management with recurrence support
+- Automated reminders via WhatsApp
+- MongoDB integration for data persistence
 - Docker support for easy deployment
 
 ## Tech Stack
 
-- Java 21
+- Java 17
 - Spring Boot 3.2.3
 - Spring Security with JWT
-- MongoDB 6.0
-- Maven
+- MongoDB
 - Docker
+- Maven
 
 ## Prerequisites
 
-- Java 21 or higher
-- Maven 3.6 or higher
+- Java 17 or higher
+- Maven
 - Docker and Docker Compose
-- MongoDB 6.0 (or use Docker)
+- MongoDB (provided via Docker)
 
 ## Getting Started
 
+### Environment Setup
+
 1. Clone the repository:
    ```bash
-   git clone https://github.com/arrayindex-io/kids-sync-app.git
+   git clone https://github.com/arrayindex/kids-sync-app.git
    cd kids-sync-app
    ```
 
-2. Start MongoDB using Docker:
+2. Create a `.env` file in the root directory:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Update the `.env` file with your configuration:
+   ```
+   MONGODB_URI=mongodb://localhost:27017/kids_sync
+   JWT_SECRET=your_jwt_secret_here
+   ```
+
+### Running the Application
+
+1. Start MongoDB using Docker:
    ```bash
    docker-compose up -d
    ```
 
-3. Set up environment variables:
-   - Copy the example environment file: `cp backend/.env.example backend/.env`
-   - Edit the `.env` file with your actual configuration values
-   - **IMPORTANT**: Never commit the `.env` file to version control
-
-4. Build and run the application:
+2. Build and run the application:
    ```bash
    cd backend
-   mvn spring-boot:run
+   ./mvnw spring-boot:run
    ```
 
 The application will be available at `http://localhost:8080`
 
-## Environment Variables
+## API Documentation
 
-The application uses environment variables for configuration. These are stored in a `.env` file in the backend directory. A sample file `.env.example` is provided as a template.
+### Authentication Endpoints
 
-Key environment variables:
-- `JWT_SECRET`: Secret key for JWT token generation
-- `MONGODB_URI`: MongoDB connection string
-- `EMAIL_*`: Email configuration for reminders
-- `WHATSAPP_*`: WhatsApp API configuration
+#### Register User
+```
+POST /api/auth/register
+Content-Type: application/json
 
-## Security Notes
+{
+    "email": "user@example.com",
+    "password": "password123",
+    "whatsappNumber": "+1234567890"
+}
+```
 
-- All sensitive information is stored in environment variables
-- The `.env` file is excluded from version control
-- JWT secrets and API keys should be kept secure and never committed to the repository
-- For production deployments, use a secure secrets management solution
+#### Login
+```
+POST /api/auth/login
+Content-Type: application/json
 
-## API Endpoints
+{
+    "email": "user@example.com",
+    "password": "password123"
+}
+```
 
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login and get JWT token
+### Event Endpoints
 
-### Events (Coming Soon)
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create a new event
-- `PUT /api/events/{id}` - Update an event
-- `DELETE /api/events/{id}` - Delete an event
+All event endpoints require JWT authentication. Include the token in the Authorization header:
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+#### Create Event
+```
+POST /api/events
+Content-Type: application/json
+
+{
+    "name": "Event Name",
+    "dateTime": "2024-03-25T10:00:00",
+    "notes": "Event notes",
+    "recurrence": "NONE" // Options: NONE, DAILY, WEEKLY, MONTHLY
+}
+```
+
+#### Get All Events
+```
+GET /api/events
+```
+
+#### Get Event by ID
+```
+GET /api/events/{event_id}
+```
+
+#### Update Event
+```
+PUT /api/events/{event_id}
+Content-Type: application/json
+
+{
+    "name": "Updated Event",
+    "dateTime": "2024-03-25T11:00:00",
+    "notes": "Updated notes",
+    "recurrence": "WEEKLY",
+    "recurrenceEndDate": "2024-04-25T11:00:00"
+}
+```
+
+#### Delete Event
+```
+DELETE /api/events/{event_id}
+```
+
+#### Get Upcoming Events
+```
+GET /api/events/upcoming
+```
+
+## Reminder System
+
+The application includes an automated reminder system that:
+- Schedules reminders 15 minutes before each event
+- Processes due reminders every minute
+- Automatically cancels reminders when events are updated or deleted
+- Supports recurring events with different patterns (daily, weekly, monthly)
 
 ## Development
 
@@ -93,23 +159,39 @@ backend/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/
-│   │   │       └── arrayindex/
-│   │   │           └── kids_sync_app/
-│   │   │               ├── config/
-│   │   │               ├── controller/
-│   │   │               ├── model/
-│   │   │               ├── repository/
-│   │   │               └── service/
+│   │   │   └── com/arrayindex/kids_sync_app/
+│   │   │       ├── config/         # Security and JWT configuration
+│   │   │       ├── controller/     # REST controllers
+│   │   │       ├── model/          # Data models
+│   │   │       ├── repository/     # MongoDB repositories
+│   │   │       ├── service/        # Business logic
+│   │   │       └── KidsyncApplication.java
 │   │   └── resources/
-│   └── test/
-└── pom.xml
+│   │       └── application.properties
+│   └── test/                       # Test files
+├── pom.xml                         # Maven dependencies
+└── .env                           # Environment variables
 ```
 
-## Contact
+### Running Tests
+```bash
+./mvnw test
+```
 
-For any queries or support, please visit [arrayindex-website-react.onrender.com](https://arrayindex-website-react.onrender.com/)
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contact
+
+Anurag Saxena - [@arrayindex](https://github.com/arrayindex)
+
+Project Link: [https://github.com/arrayindex/kids-sync-app](https://github.com/arrayindex/kids-sync-app) 
