@@ -24,7 +24,7 @@ A Spring Boot application for managing kids' activities and schedules with email
 
 ## Screenshots
 
-![Kids Sync App Dashboard](screenshots/dashboard.png)
+![Kids Sync App Dashboard](screenshots/KidsSync-App-Img.png)
 
 ## Prerequisites
 
