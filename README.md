@@ -1,12 +1,12 @@
 # Kids Sync App
 
-A Spring Boot application for managing kids' activities and schedules with WhatsApp integration.
+A Spring Boot application for managing kids' activities and schedules with email and WhatsApp integration.
 
 ## Features
 
 - User authentication with JWT
 - Event management with recurrence support
-- Automated reminders via WhatsApp
+- Automated reminders via Email and WhatsApp
 - MongoDB integration for data persistence
 - Docker support for easy deployment
 
@@ -15,6 +15,7 @@ A Spring Boot application for managing kids' activities and schedules with Whats
 - Java 17
 - Spring Boot 3.2.3
 - Spring Security with JWT
+- Spring Mail for email notifications
 - MongoDB
 - Docker
 - Maven
@@ -25,6 +26,7 @@ A Spring Boot application for managing kids' activities and schedules with Whats
 - Maven
 - Docker and Docker Compose
 - MongoDB (provided via Docker)
+- Gmail account with App Password (for email notifications)
 
 ## Getting Started
 
@@ -45,7 +47,19 @@ A Spring Boot application for managing kids' activities and schedules with Whats
    ```
    MONGODB_URI=mongodb://localhost:27017/kids_sync
    JWT_SECRET=your_jwt_secret_here
+   GMAIL_USERNAME=your-email@gmail.com
+   GMAIL_APP_PASSWORD=your-app-password
    ```
+
+4. Generate a Gmail App Password:
+   - Go to your Google Account settings: https://myaccount.google.com/
+   - Navigate to Security
+   - Enable 2-Step Verification if it's not already enabled
+   - Go to "App passwords" (under 2-Step Verification)
+   - Select "Mail" as the app and "Other" as the device
+   - Enter a name for the app password (e.g., "KidSync App")
+   - Click "Generate"
+   - Copy the generated password and use it as the `GMAIL_APP_PASSWORD` in your `.env` file
 
 ### Running the Application
 
@@ -143,10 +157,22 @@ DELETE /api/events/{event_id}
 GET /api/events/upcoming
 ```
 
+### Test Email Endpoint
+
+```
+POST /api/test/email
+Content-Type: application/json
+
+{
+    "email": "recipient@example.com"
+}
+```
+
 ## Reminder System
 
 The application includes an automated reminder system that:
-- Schedules reminders 15 minutes before each event
+- Schedules reminders for each event
+- Sends email notifications to users
 - Processes due reminders every minute
 - Automatically cancels reminders when events are updated or deleted
 - Supports recurring events with different patterns (daily, weekly, monthly)
@@ -160,14 +186,14 @@ backend/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/arrayindex/kids_sync_app/
-│   │   │       ├── config/         # Security and JWT configuration
+│   │   │       ├── config/         # Security, JWT, and Mail configuration
 │   │   │       ├── controller/     # REST controllers
 │   │   │       ├── model/          # Data models
 │   │   │       ├── repository/     # MongoDB repositories
 │   │   │       ├── service/        # Business logic
 │   │   │       └── KidsyncApplication.java
 │   │   └── resources/
-│   │       └── application.properties
+│   │       └── application.yml     # Application configuration
 │   └── test/                       # Test files
 ├── pom.xml                         # Maven dependencies
 └── .env                           # Environment variables

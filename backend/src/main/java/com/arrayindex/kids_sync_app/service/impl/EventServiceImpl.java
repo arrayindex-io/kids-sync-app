@@ -4,6 +4,8 @@ import com.arrayindex.kids_sync_app.model.Event;
 import com.arrayindex.kids_sync_app.repository.EventRepository;
 import com.arrayindex.kids_sync_app.service.EventService;
 import com.arrayindex.kids_sync_app.service.ReminderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final ReminderService reminderService;
+    private static final Logger log = LoggerFactory.getLogger(EventServiceImpl.class);
 
     @Autowired
     public EventServiceImpl(EventRepository eventRepository, ReminderService reminderService) {
@@ -72,6 +75,40 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<Event> getUpcomingEvents(String userId) {
         LocalDateTime now = LocalDateTime.now();
-        return eventRepository.findByUserIdAndDateTimeGreaterThan(userId, now);
+        log.info("Finding upcoming events for user: {} after: {}", userId, now);
+        
+        // Get all events for the user
+        List<Event> allEvents = eventRepository.findByUserId(userId);
+        log.info("Found {} total events for user: {}", allEvents.size(), userId);
+        
+        // Filter events that are in the future
+        List<Event> upcomingEvents = allEvents.stream()
+                .filter(event -> event.getDateTime().isAfter(now))
+                .collect(java.util.stream.Collectors.toList());
+        
+        log.info("Found {} upcoming events for user: {}", upcomingEvents.size(), userId);
+        
+        // Log each event for debugging
+        for (Event event : upcomingEvents) {
+            log.info("Upcoming event: id={}, name={}, dateTime={}, userId={}", 
+                    event.getId(), event.getName(), event.getDateTime(), event.getUserId());
+        }
+        
+        return upcomingEvents;
+    }
+
+    @Override
+    public List<Event> getEventsByDateRange(String userId, LocalDateTime start, LocalDateTime end) {
+        log.info("Finding events for user: {} between: {} and: {}", userId, start, end);
+        List<Event> events = eventRepository.findByUserIdAndDateTimeBetweenOrderByDateTimeAsc(userId, start, end);
+        log.info("Found {} events for user: {} in date range", events.size(), userId);
+        
+        // Log each event for debugging
+        for (Event event : events) {
+            log.info("Event in range: id={}, name={}, dateTime={}, userId={}", 
+                    event.getId(), event.getName(), event.getDateTime(), event.getUserId());
+        }
+        
+        return events;
     }
 } 

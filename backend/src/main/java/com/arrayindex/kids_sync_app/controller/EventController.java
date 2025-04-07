@@ -2,6 +2,8 @@ package com.arrayindex.kids_sync_app.controller;
 
 import com.arrayindex.kids_sync_app.model.Event;
 import com.arrayindex.kids_sync_app.service.EventService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -17,6 +20,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private static final Logger log = LoggerFactory.getLogger(EventController.class);
 
     @Autowired
     public EventController(EventService eventService) {
@@ -106,7 +110,80 @@ public class EventController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
         
+        log.info("Getting upcoming events for user: {}", userId);
         List<Event> upcomingEvents = eventService.getUpcomingEvents(userId);
+        log.info("Found {} upcoming events for user: {}", upcomingEvents.size(), userId);
+        
         return ResponseEntity.ok(upcomingEvents);
+    }
+
+    /**
+     * Get all events for the current user with detailed logging
+     * @return List of all events
+     */
+    @GetMapping("/all")
+    public ResponseEntity<List<Event>> getAllEventsWithLogging() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        
+        log.info("Getting all events for user: {}", userId);
+        List<Event> allEvents = eventService.getEventsByUserId(userId);
+        log.info("Found {} total events for user: {}", allEvents.size(), userId);
+        
+        // Log each event for debugging
+        for (Event event : allEvents) {
+            log.info("Event: id={}, name={}, dateTime={}, userId={}, recurrence={}", 
+                    event.getId(), event.getName(), event.getDateTime(), event.getUserId(), event.getRecurrence());
+        }
+        
+        return ResponseEntity.ok(allEvents);
+    }
+
+    /**
+     * Get events for the current user within a date range
+     * @param start The start date (ISO format)
+     * @param end The end date (ISO format)
+     * @return List of events
+     */
+    @GetMapping("/range")
+    public ResponseEntity<List<Event>> getEventsByDateRange(
+            @RequestParam String start,
+            @RequestParam String end) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        
+        try {
+            LocalDateTime startDate = LocalDateTime.parse(start);
+            LocalDateTime endDate = LocalDateTime.parse(end);
+            
+            log.info("Getting events for user: {} between: {} and: {}", userId, startDate, endDate);
+            List<Event> events = eventService.getEventsByDateRange(userId, startDate, endDate);
+            
+            return ResponseEntity.ok(events);
+        } catch (Exception e) {
+            log.error("Error parsing date range: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Get a specific event by ID with detailed logging
+     * @param id The ID of the event
+     * @return The event if found
+     */
+    @GetMapping("/{id}/details")
+    public ResponseEntity<Event> getEventDetails(@PathVariable String id) {
+        log.info("Getting details for event: {}", id);
+        
+        return eventService.getEventById(id)
+                .map(event -> {
+                    log.info("Event details: id={}, name={}, dateTime={}, userId={}, recurrence={}", 
+                            event.getId(), event.getName(), event.getDateTime(), event.getUserId(), event.getRecurrence());
+                    return ResponseEntity.ok(event);
+                })
+                .orElseGet(() -> {
+                    log.warn("Event not found: {}", id);
+                    return ResponseEntity.notFound().build();
+                });
     }
 } 

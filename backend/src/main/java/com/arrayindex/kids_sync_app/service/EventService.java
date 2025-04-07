@@ -3,6 +3,7 @@ package com.arrayindex.kids_sync_app.service;
 import com.arrayindex.kids_sync_app.model.Event;
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 public interface EventService {
     
@@ -47,4 +48,13 @@ public interface EventService {
      * @return List of upcoming events
      */
     List<Event> getUpcomingEvents(String userId);
+    
+    /**
+     * Get events for a user within a date range
+     * @param userId The ID of the user
+     * @param start The start date
+     * @param end The end date
+     * @return List of events
+     */
+    List<Event> getEventsByDateRange(String userId, LocalDateTime start, LocalDateTime end);
 } 
