@@ -20,6 +20,32 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Features
+
+### Calendar Event Management
+
+The application includes a comprehensive calendar system for managing events:
+
+- **View Events**: Browse events in a monthly calendar view
+- **Create Events**: Add new events directly from the calendar by:
+  - Clicking on any day in the calendar
+  - Using the "+" button on any day
+  - Using the "Create Event" button in the calendar header
+- **Edit Events**: Modify existing events with details like name, date, recurrence, and notes
+- **Delete Events**: Remove events that are no longer needed
+- **Event Details**: Hover over events to see detailed information in a tooltip
+
+### User Authentication
+
+- **Sign Up**: Create a new account with email and password
+- **Login**: Access your account with secure authentication
+- **Logout**: Safely end your session
+
+### User Settings
+
+- **Notification Preferences**: Configure email and WhatsApp notifications
+- **Profile Management**: Update your contact information
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
