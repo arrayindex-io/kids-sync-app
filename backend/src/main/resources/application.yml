@@ -1,0 +1,53 @@
+# MongoDB Configuration
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/kids_sync}
+  
+  # CORS Configuration
+  web:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+      
+  # Mail Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME:anurawg.saxena@gmail.com}
+    password: ${GMAIL_APP_PASSWORD:xbvt vjjj ucrv bekn}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your_jwt_secret_here}
+
+# Resend Email Configuration
+resend:
+  from:
+    email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
+  api:
+    key: ${RESEND_API_KEY:re_KRCgTUxY_KyEqeVAwRseao9Yo2sAL8p2k}
+  test:
+    email: ${RESEND_TEST_EMAIL:anuragsaxena.ai@gmail.com}
+
+# Logging Configuration
+logging:
+  level:
+    com:
+      arrayindex:
+        kids_sync_app: DEBUG
+    org:
+      springframework:
+        security: INFO
+
+# Server Configuration
+server:
+  port: 8080 
