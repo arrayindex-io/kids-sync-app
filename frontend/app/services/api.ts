@@ -167,6 +167,34 @@ export const api = {
     }
   },
 
+  getEventsByDateRange: async (startDate: string, endDate: string): Promise<Event[]> => {
+    try {
+      console.log('API: Fetching events by date range:', startDate, 'to', endDate);
+      const response = await fetch(`${API_BASE_URL}/events/range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`, {
+        headers: getHeaders(),
+      });
+      
+      console.log('API: Date range response status:', response.status);
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.log('API: Unauthorized, redirecting to login');
+          window.location.href = '/login';
+          return [];
+        }
+        throw new Error('Failed to fetch events by date range');
+      }
+      
+      const data = await response.json();
+      console.log('API: Fetched events by date range:', data);
+      
+      return data;
+    } catch (error) {
+      console.error('API: Error fetching events by date range:', error);
+      return []; // Return empty array instead of throwing
+    }
+  },
+
   getEventById: async (id: number): Promise<Event> => {
     const response = await fetch(`${API_BASE_URL}/events/${id}`, {
       headers: getHeaders(),

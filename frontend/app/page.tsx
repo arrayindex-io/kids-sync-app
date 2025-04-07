@@ -2,24 +2,42 @@
 
 import { useEffect, useState } from 'react'
 import { api, Event } from './services/api'
-import { CalendarIcon, UserGroupIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, UserGroupIcon, ClockIcon, FunnelIcon } from '@heroicons/react/24/outline'
 
 export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
   const [allEvents, setAllEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [useDateRange, setUseDateRange] = useState(false)
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [upcomingData, allEventsData] = await Promise.all([
-          api.getUpcomingEvents(),
-          api.getEvents()
-        ])
-        setUpcomingEvents(upcomingData)
+        
+        // Get all events
+        const allEventsData = await api.getEvents()
         setAllEvents(allEventsData)
+        
+        // Get upcoming events or events by date range
+        let upcomingData: Event[] = []
+        
+        if (useDateRange && startDate && endDate) {
+          // Format dates for API (add time component)
+          const formattedStartDate = `${startDate}T00:00:00`
+          const formattedEndDate = `${endDate}T23:59:59`
+          
+          console.log('Fetching events by date range:', formattedStartDate, 'to', formattedEndDate)
+          upcomingData = await api.getEventsByDateRange(formattedStartDate, formattedEndDate)
+        } else {
+          // Get upcoming events
+          upcomingData = await api.getUpcomingEvents()
+        }
+        
+        setUpcomingEvents(upcomingData)
         setError(null)
       } catch (err) {
         console.error('Error fetching data:', err)
@@ -30,7 +48,19 @@ export default function Home() {
     }
 
     fetchData()
-  }, [])
+  }, [useDateRange, startDate, endDate])
+
+  const handleDateRangeToggle = () => {
+    setUseDateRange(!useDateRange)
+    if (!useDateRange) {
+      // Set default date range to April 2024 (when the events are from)
+      const firstDay = new Date(2024, 3, 1) // April 1, 2024 (month is 0-indexed)
+      const lastDay = new Date(2024, 3, 30) // April 30, 2024
+      
+      setStartDate(firstDay.toISOString().split('T')[0])
+      setEndDate(lastDay.toISOString().split('T')[0])
+    }
+  }
 
   const stats = [
     { name: 'Total Events', value: allEvents.length, icon: CalendarIcon },
@@ -69,8 +99,55 @@ export default function Home() {
           {/* Upcoming Events */}
           <div className="mt-8">
             <div className="overflow-hidden bg-white shadow sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6">
-                <h3 className="text-lg font-medium leading-6 text-gray-900">Upcoming Events</h3>
+              <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+                <h3 className="text-lg font-medium leading-6 text-gray-900">
+                  {useDateRange ? 'Events by Date Range' : 'Upcoming Events'}
+                </h3>
+                
+                {/* Date Range Selection */}
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="useDateRange"
+                      checked={useDateRange}
+                      onChange={handleDateRangeToggle}
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    <label htmlFor="useDateRange" className="ml-2 text-sm font-medium text-gray-700">
+                      Filter by Date Range
+                    </label>
+                  </div>
+                  
+                  {useDateRange && (
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center">
+                        <label htmlFor="startDate" className="mr-2 text-sm font-medium text-gray-700">
+                          From:
+                        </label>
+                        <input
+                          type="date"
+                          id="startDate"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                      <div className="flex items-center">
+                        <label htmlFor="endDate" className="mr-2 text-sm font-medium text-gray-700">
+                          To:
+                        </label>
+                        <input
+                          type="date"
+                          id="endDate"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               {loading ? (
                 <div className="px-4 py-5 sm:p-6 text-center">
@@ -82,7 +159,7 @@ export default function Home() {
                 </div>
               ) : upcomingEvents.length === 0 ? (
                 <div className="px-4 py-5 sm:p-6 text-center">
-                  <p className="text-gray-500">No upcoming events</p>
+                  <p className="text-gray-500">No events found</p>
                 </div>
               ) : (
                 <ul role="list" className="divide-y divide-gray-200">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { ChevronLeftIcon, ChevronRightIcon, ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { ChevronLeftIcon, ChevronRightIcon, ArrowPathIcon, PlusIcon, CalendarIcon } from '@heroicons/react/24/outline'
 import { api, Event } from '../services/api'
 import { useRouter } from 'next/navigation'
 import NewEventForm from '../components/NewEventForm'
@@ -20,11 +20,28 @@ export default function Calendar() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const [isNewEventFormOpen, setIsNewEventFormOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [useDateRange, setUseDateRange] = useState(false)
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
 
   const fetchEvents = async () => {
     try {
       setLoading(true)
-      const data = await api.getEvents()
+      
+      let data: Event[] = []
+      
+      if (useDateRange && startDate && endDate) {
+        // Format dates for API (add time component)
+        const formattedStartDate = `${startDate}T00:00:00`
+        const formattedEndDate = `${endDate}T23:59:59`
+        
+        console.log('Fetching events by date range:', formattedStartDate, 'to', formattedEndDate)
+        data = await api.getEventsByDateRange(formattedStartDate, formattedEndDate)
+      } else {
+        // Fetch all events
+        data = await api.getEvents()
+      }
+      
       console.log('Fetched events for calendar:', data)
       
       // Check if events have valid dateTime values
@@ -66,7 +83,7 @@ export default function Calendar() {
       console.log('Navigating to April 2024')
       setCurrentDate(new Date(2024, 3, 1)) // April is month 3 (0-indexed)
     }
-  }, [currentDate]) // Add currentDate as a dependency to refetch events when the month changes
+  }, [currentDate, useDateRange, startDate, endDate]) // Add dependencies to refetch events when they change
 
   // Get the first day of the current month
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
@@ -144,6 +161,18 @@ export default function Calendar() {
     setIsNewEventFormOpen(true)
   }
 
+  const handleDateRangeToggle = () => {
+    setUseDateRange(!useDateRange)
+    if (!useDateRange) {
+      // Set default date range to April 2024 (when the events are from)
+      const firstDay = new Date(2024, 3, 1) // April 1, 2024 (month is 0-indexed)
+      const lastDay = new Date(2024, 3, 30) // April 30, 2024
+      
+      setStartDate(firstDay.toISOString().split('T')[0])
+      setEndDate(lastDay.toISOString().split('T')[0])
+    }
+  }
+
   return (
     <div className="py-10">
       <header>
@@ -195,6 +224,59 @@ export default function Calendar() {
                 </button>
               </div>
             </div>
+          </div>
+          
+          {/* Date Range Selection */}
+          <div className="mt-4 flex items-center space-x-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="useDateRange"
+                checked={useDateRange}
+                onChange={handleDateRangeToggle}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+              <label htmlFor="useDateRange" className="ml-2 text-sm font-medium text-gray-700">
+                Use Date Range
+              </label>
+            </div>
+            
+            {useDateRange && (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center">
+                  <label htmlFor="startDate" className="mr-2 text-sm font-medium text-gray-700">
+                    From:
+                  </label>
+                  <input
+                    type="date"
+                    id="startDate"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <label htmlFor="endDate" className="mr-2 text-sm font-medium text-gray-700">
+                    To:
+                  </label>
+                  <input
+                    type="date"
+                    id="endDate"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchEvents}
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  <CalendarIcon className="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" />
+                  Apply
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

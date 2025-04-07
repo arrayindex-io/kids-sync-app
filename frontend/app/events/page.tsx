@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { api, Event } from '../services/api'
 import NewEventForm from '../components/NewEventForm'
 import EditEventForm from '../components/EditEventForm'
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, TrashIcon, FunnelIcon, CalendarIcon } from '@heroicons/react/24/outline'
 
 export default function Events() {
   const [events, setEvents] = useState<Event[]>([])
@@ -13,10 +13,28 @@ export default function Events() {
   const [isNewEventFormOpen, setIsNewEventFormOpen] = useState(false)
   const [isEditEventFormOpen, setIsEditEventFormOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [useDateRange, setUseDateRange] = useState(false)
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
 
   const fetchEvents = async () => {
     try {
-      const data = await api.getEvents()
+      setLoading(true)
+      
+      let data: Event[] = []
+      
+      if (useDateRange && startDate && endDate) {
+        // Format dates for API (add time component)
+        const formattedStartDate = `${startDate}T00:00:00`
+        const formattedEndDate = `${endDate}T23:59:59`
+        
+        console.log('Fetching events by date range:', formattedStartDate, 'to', formattedEndDate)
+        data = await api.getEventsByDateRange(formattedStartDate, formattedEndDate)
+      } else {
+        // Fetch all events
+        data = await api.getEvents()
+      }
+      
       setEvents(data)
       setError(null)
     } catch (err) {
@@ -29,7 +47,19 @@ export default function Events() {
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [useDateRange, startDate, endDate])
+
+  const handleDateRangeToggle = () => {
+    setUseDateRange(!useDateRange)
+    if (!useDateRange) {
+      // Set default date range to April 2024 (when the events are from)
+      const firstDay = new Date(2024, 3, 1) // April 1, 2024 (month is 0-indexed)
+      const lastDay = new Date(2024, 3, 30) // April 30, 2024
+      
+      setStartDate(firstDay.toISOString().split('T')[0])
+      setEndDate(lastDay.toISOString().split('T')[0])
+    }
+  }
 
   const handleCreateEvent = async (eventData: any) => {
     try {
@@ -106,6 +136,60 @@ export default function Events() {
           </button>
         </div>
       </div>
+      
+      {/* Date Range Selection */}
+      <div className="mt-4 flex items-center space-x-4">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="useDateRange"
+            checked={useDateRange}
+            onChange={handleDateRangeToggle}
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+          />
+          <label htmlFor="useDateRange" className="ml-2 text-sm font-medium text-gray-700">
+            Filter by Date Range
+          </label>
+        </div>
+        
+        {useDateRange && (
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center">
+              <label htmlFor="startDate" className="mr-2 text-sm font-medium text-gray-700">
+                From:
+              </label>
+              <input
+                type="date"
+                id="startDate"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+            <div className="flex items-center">
+              <label htmlFor="endDate" className="mr-2 text-sm font-medium text-gray-700">
+                To:
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={fetchEvents}
+              className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              <CalendarIcon className="-ml-0.5 mr-1.5 h-4 w-4" aria-hidden="true" />
+              Apply
+            </button>
+          </div>
+        )}
+      </div>
+      
       <div className="mt-8 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
