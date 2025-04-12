@@ -234,18 +234,26 @@ export const api = {
     console.log('API: Updating event with ID:', eventId);
     console.log('API: Update data:', eventData);
     
+    // Send the update data directly without trying to fetch the existing event first
     const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         ...getHeaders(),
       },
-      body: JSON.stringify(eventData),
+      body: JSON.stringify({
+        ...eventData,
+        id: parseInt(eventId), // Ensure the ID is set correctly as a number
+      }),
     });
 
     if (response.status === 401) {
       window.location.href = '/login';
       throw new Error('Unauthorized');
+    }
+
+    if (response.status === 404) {
+      throw new Error(`Event with ID ${eventId} not found`);
     }
 
     if (!response.ok) {
