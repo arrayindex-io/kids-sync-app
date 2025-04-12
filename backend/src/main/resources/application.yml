@@ -27,7 +27,7 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:your_jwt_secret_here}
+  secret: ${JWT_SECRET}
 
 # Resend Email Configuration
 resend:

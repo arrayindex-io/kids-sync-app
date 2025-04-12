@@ -23,10 +23,10 @@ public class UserServiceImpl implements UserService {
     private final SecretKey jwtSecretKey;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtConfig jwtConfig) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, SecretKey jwtSecretKey) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtSecretKey = jwtConfig.getSecretKey();
+        this.jwtSecretKey = jwtSecretKey;
     }
 
     @Override
@@ -56,6 +56,14 @@ public class UserServiceImpl implements UserService {
 
         if (request.getName() != null) {
             user.setName(request.getName());
+        }
+
+        if (request.getEmail() != null) {
+            user.setEmail(request.getName());
+        }
+
+        if (request.getWhatsappNumber() != null) {
+            user.setWhatsappNumber(request.getWhatsappNumber());
         }
         if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));

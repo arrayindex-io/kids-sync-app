@@ -3,7 +3,8 @@ package com.arrayindex.kids_sync_app.controller;
 import com.arrayindex.kids_sync_app.dto.UserProfileUpdateRequest;
 import com.arrayindex.kids_sync_app.model.User;
 import com.arrayindex.kids_sync_app.service.UserService;
-import com.arrayindex.kids_sync_app.repository.UserRepository;    
+import com.arrayindex.kids_sync_app.repository.UserRepository;
+import io.jsonwebtoken.Jwts;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -68,6 +69,20 @@ public class AuthController {
                     errorResponse.put("error", "Invalid credentials");
                     return ResponseEntity.badRequest().body(errorResponse);
                 });
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(Authentication authentication) {
+        String email = authentication.getName();
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
     @PutMapping("/profile")

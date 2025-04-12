@@ -34,9 +34,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final SecretKey jwtSecretKey;
     private final UserDetailsService userDetailsService;
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
     @Autowired
     public JwtAuthenticationFilter(UserRepository userRepository, SecretKey jwtSecretKey, UserDetailsService userDetailsService) {
         this.userRepository = userRepository;

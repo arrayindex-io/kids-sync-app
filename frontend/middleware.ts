@@ -8,19 +8,9 @@ export function middleware(request: NextRequest) {
   // Define public paths that don't require authentication
   const isPublicPath = path === '/login' || path === '/signup'
 
-  // Get the token from the cookies
-  const token = request.cookies.get('token')?.value || ''
-
-  // Redirect logic
-  if (isPublicPath && token) {
-    // If the user is logged in and tries to access a public path, redirect to home
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
-  if (!isPublicPath && !token) {
-    // If the user is not logged in and tries to access a protected path, redirect to login
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  // For client-side navigation, we'll handle auth in the components
+  // This middleware is mainly for server-side redirects
+  return NextResponse.next()
 }
 
 // Configure which paths the middleware should run on

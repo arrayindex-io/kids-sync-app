@@ -18,6 +18,8 @@ public class User {
     @Indexed(unique = true) // Ensure email is unique
     private String email;
 
+    private String name;
+
     private String password; // Hashed
     private String whatsappNumber; // Optional, for WhatsApp reminders
 
