@@ -78,7 +78,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Test Event\",\n    \"dateTime\": \"2024-03-25T10:00:00\",\n    \"notes\": \"Test event notes\",\n    \"recurrence\": \"NONE\"\n}"
+							"raw": "{\n    \"name\": \"Test Event\",\n    \"dateTime\": \"2024-03-25T10:00:00\",\n    \"notes\": \"Test event notes\",\n    \"recurrence\": \"WEEKLY\"\n}"
 						},
 						"url": {
 							"raw": "http://localhost:8080/api/events",
@@ -111,6 +111,26 @@
 					}
 				},
 				{
+					"name": "Get All Events (with logging)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/events/all",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "events", "all"]
+						},
+						"description": "Get all events for the authenticated user with detailed logging"
+					}
+				},
+				{
 					"name": "Get Event by ID",
 					"request": {
 						"method": "GET",
@@ -128,6 +148,26 @@
 							"path": ["api", "events", "{{event_id}}"]
 						},
 						"description": "Get a specific event by ID"
+					}
+				},
+				{
+					"name": "Get Event Details (with logging)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/events/{{event_id}}/details",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "events", "{{event_id}}", "details"]
+						},
+						"description": "Get a specific event by ID with detailed logging"
 					}
 				},
 				{
@@ -196,6 +236,65 @@
 							"path": ["api", "events", "upcoming"]
 						},
 						"description": "Get upcoming events for the authenticated user"
+					}
+				},
+				{
+					"name": "Get Events by Date Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8080/api/events/range?start=2024-03-25T00:00:00&end=2024-03-26T00:00:00",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "events", "range"],
+							"query": [
+								{
+									"key": "start",
+									"value": "2024-03-25T00:00:00"
+								},
+								{
+									"key": "end",
+									"value": "2024-03-26T00:00:00"
+								}
+							]
+						},
+						"description": "Get events for the authenticated user within a date range"
+					}
+				}
+			]
+		},
+		{
+			"name": "Test",
+			"item": [
+				{
+					"name": "Test Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"recipient@example.com\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/test/email",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8080",
+							"path": ["api", "test", "email"]
+						},
+						"description": "Send a test email"
 					}
 				}
 			]

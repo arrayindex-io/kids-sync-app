@@ -41,4 +41,13 @@ public interface EventRepository extends MongoRepository<Event, String> {
      * @return List of upcoming events
      */
     List<Event> findByUserIdAndDateTimeGreaterThan(String userId, LocalDateTime dateTime);
+
+    /**
+     * Find all events for a specific user within a date range
+     * @param userId The ID of the user
+     * @param start The start date
+     * @param end The end date
+     * @return List of events
+     */
+    List<Event> findByUserIdAndDateTimeBetweenOrderByDateTimeAsc(String userId, LocalDateTime start, LocalDateTime end);
 } 

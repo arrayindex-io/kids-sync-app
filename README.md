@@ -1,12 +1,13 @@
 # Kids Sync App
 
-A Spring Boot application for managing kids' activities and schedules with WhatsApp integration.
+A Spring Boot application for managing kids' activities and schedules with email and WhatsApp integration.
 
 ## Features
 
 - User authentication with JWT
 - Event management with recurrence support
-- Automated reminders via WhatsApp
+- Date range filtering for events
+- Automated reminders via Email and WhatsApp
 - MongoDB integration for data persistence
 - Docker support for easy deployment
 
@@ -15,9 +16,15 @@ A Spring Boot application for managing kids' activities and schedules with Whats
 - Java 17
 - Spring Boot 3.2.3
 - Spring Security with JWT
+- Spring Mail for email notifications
 - MongoDB
 - Docker
 - Maven
+- Next.js 15.2.4 (Frontend)
+
+## Screenshots
+
+![Kids Sync App Dashboard](screenshots/KidsSync-App-Img.png)
 
 ## Prerequisites
 
@@ -25,6 +32,8 @@ A Spring Boot application for managing kids' activities and schedules with Whats
 - Maven
 - Docker and Docker Compose
 - MongoDB (provided via Docker)
+- Gmail account with App Password (for email notifications)
+- Node.js 18+ (for frontend development)
 
 ## Getting Started
 
@@ -45,7 +54,19 @@ A Spring Boot application for managing kids' activities and schedules with Whats
    ```
    MONGODB_URI=mongodb://localhost:27017/kids_sync
    JWT_SECRET=your_jwt_secret_here
+   GMAIL_USERNAME=your-email@gmail.com
+   GMAIL_APP_PASSWORD=your-app-password
    ```
+
+4. Generate a Gmail App Password:
+   - Go to your Google Account settings: https://myaccount.google.com/
+   - Navigate to Security
+   - Enable 2-Step Verification if it's not already enabled
+   - Go to "App passwords" (under 2-Step Verification)
+   - Select "Mail" as the app and "Other" as the device
+   - Enter a name for the app password (e.g., "KidSync App")
+   - Click "Generate"
+   - Copy the generated password and use it as the `GMAIL_APP_PASSWORD` in your `.env` file
 
 ### Running the Application
 
@@ -54,13 +75,20 @@ A Spring Boot application for managing kids' activities and schedules with Whats
    docker-compose up -d
    ```
 
-2. Build and run the application:
+2. Build and run the backend:
    ```bash
    cd backend
    ./mvnw spring-boot:run
    ```
 
-The application will be available at `http://localhost:8080`
+3. Run the frontend:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+The backend will be available at `http://localhost:8080` and the frontend at `http://localhost:3000`
 
 ## API Documentation
 
@@ -143,10 +171,27 @@ DELETE /api/events/{event_id}
 GET /api/events/upcoming
 ```
 
+#### Get Events by Date Range
+```
+GET /api/events/range?start=2024-03-25T00:00:00&end=2024-04-26T00:00:00
+```
+
+### Test Email Endpoint
+
+```
+POST /api/test/email
+Content-Type: application/json
+
+{
+    "email": "recipient@example.com"
+}
+```
+
 ## Reminder System
 
 The application includes an automated reminder system that:
-- Schedules reminders 15 minutes before each event
+- Schedules reminders for each event
+- Sends email notifications to users
 - Processes due reminders every minute
 - Automatically cancels reminders when events are updated or deleted
 - Supports recurring events with different patterns (daily, weekly, monthly)
@@ -160,17 +205,28 @@ backend/
 │   ├── main/
 │   │   ├── java/
 │   │   │   └── com/arrayindex/kids_sync_app/
-│   │   │       ├── config/         # Security and JWT configuration
+│   │   │       ├── config/         # Security, JWT, and Mail configuration
 │   │   │       ├── controller/     # REST controllers
 │   │   │       ├── model/          # Data models
 │   │   │       ├── repository/     # MongoDB repositories
 │   │   │       ├── service/        # Business logic
 │   │   │       └── KidsyncApplication.java
 │   │   └── resources/
-│   │       └── application.properties
+│   │       └── application.yml     # Application configuration
 │   └── test/                       # Test files
 ├── pom.xml                         # Maven dependencies
 └── .env                           # Environment variables
+
+frontend/
+├── app/
+│   ├── components/                 # Reusable UI components
+│   ├── services/                   # API services
+│   ├── page.tsx                    # Dashboard page
+│   ├── calendar/                   # Calendar page
+│   ├── events/                     # Events page
+│   └── settings/                   # Settings page
+├── public/                         # Static assets
+└── package.json                    # NPM dependencies
 ```
 
 ### Running Tests

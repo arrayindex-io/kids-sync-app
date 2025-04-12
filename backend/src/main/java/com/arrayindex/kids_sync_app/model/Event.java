@@ -67,7 +67,7 @@ public class Event {
         this.name = name;
         this.dateTime = dateTime;
         this.notes = notes;
-        this.recurrence = "NONE";
+        this.recurrence = "WEEKLY";
         this.completed = false;
     }
 } 
