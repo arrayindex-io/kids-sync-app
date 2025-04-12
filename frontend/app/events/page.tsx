@@ -52,12 +52,13 @@ export default function Events() {
   const handleDateRangeToggle = () => {
     setUseDateRange(!useDateRange)
     if (!useDateRange) {
-      // Set default date range to April 2024 (when the events are from)
-      const firstDay = new Date(2024, 3, 1) // April 1, 2024 (month is 0-indexed)
-      const lastDay = new Date(2024, 3, 30) // April 30, 2024
+      // Set default date range from today to one year in the future
+      const today = new Date()
+      const oneYearFromNow = new Date()
+      oneYearFromNow.setFullYear(today.getFullYear() + 1)
       
-      setStartDate(firstDay.toISOString().split('T')[0])
-      setEndDate(lastDay.toISOString().split('T')[0])
+      setStartDate(today.toISOString().split('T')[0])
+      setEndDate(oneYearFromNow.toISOString().split('T')[0])
     }
   }
 

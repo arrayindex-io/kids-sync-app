@@ -38,7 +38,7 @@ export default function Signup() {
 
     try {
       // Remove confirmPassword before sending to API
-      const { confirmPassword, whatsappNumber, ...signupData } = formData
+      const { confirmPassword, ...signupData } = formData
       await api.signup(signupData)
       router.push('/')
     } catch (err: any) {
@@ -48,7 +48,6 @@ export default function Signup() {
         setError(err.message || 'Registration failed. Please try again.')
       }
       console.error('Registration error:', err)
-      setError(err.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
