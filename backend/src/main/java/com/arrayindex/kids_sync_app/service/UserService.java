@@ -1,6 +1,6 @@
 package com.arrayindex.kids_sync_app.service;
 
-import com.arrayindex.kids_sync_app.controller.AuthController.UserProfileUpdateRequest;
+import com.arrayindex.kids_sync_app.dto.UserProfileUpdateRequest;
 import com.arrayindex.kids_sync_app.model.User;
 
 public interface UserService {

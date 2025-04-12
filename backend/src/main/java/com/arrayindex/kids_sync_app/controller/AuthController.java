@@ -2,8 +2,8 @@ package com.arrayindex.kids_sync_app.controller;
 
 import com.arrayindex.kids_sync_app.dto.UserProfileUpdateRequest;
 import com.arrayindex.kids_sync_app.model.User;
-import com.arrayindex.kids_sync_app.service.UserService;;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.arrayindex.kids_sync_app.service.UserService;
+import com.arrayindex.kids_sync_app.repository.UserRepository;    
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;

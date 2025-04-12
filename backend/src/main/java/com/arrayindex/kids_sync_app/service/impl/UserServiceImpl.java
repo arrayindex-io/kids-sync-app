@@ -1,7 +1,5 @@
 package com.arrayindex.kids_sync_app.service.impl;
 
-import com.arrayindex.kids_sync_app.config.JwtConfig;
-import com.arrayindex.kids_sync_app.controller.UserProfileUpdateRequest;
 import com.arrayindex.kids_sync_app.model.User;
 import com.arrayindex.kids_sync_app.repository.UserRepository;
 import com.arrayindex.kids_sync_app.service.UserService;
@@ -9,8 +7,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.arrayindex.kids_sync_app.config.JwtConfig;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.arrayindex.kids_sync_app.dto.UserProfileUpdateRequest;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
