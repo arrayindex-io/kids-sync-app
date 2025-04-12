@@ -38,10 +38,15 @@ export default function Signup() {
 
     try {
       // Remove confirmPassword before sending to API
-      const { confirmPassword, ...signupData } = formData
+      const { confirmPassword, whatsappNumber, ...signupData } = formData
       await api.signup(signupData)
       router.push('/')
     } catch (err: any) {
+      if (err.message === "Email already registered") {
+        setError("This email is already associated with an account. Please sign in instead.")
+      } else {
+        setError(err.message || 'Registration failed. Please try again.')
+      }
       console.error('Registration error:', err)
       setError(err.message || 'Registration failed. Please try again.')
     } finally {

@@ -22,6 +22,7 @@ A Spring Boot application for managing kids' activities and schedules with email
 - Maven
 - Next.js 15.2.4 (Frontend)
 
+
 ## Screenshots
 
 ![Kids Sync App Dashboard](screenshots/KidsSync-App-Img.png)
@@ -57,6 +58,12 @@ A Spring Boot application for managing kids' activities and schedules with email
    GMAIL_USERNAME=your-email@gmail.com
    GMAIL_APP_PASSWORD=your-app-password
    ```
+
+   **Important:** The JWT_SECRET is a critical security component. Make sure to:
+   - Use a strong, random string (at least 32 characters)
+   - Never commit this value to version control
+   - Keep it consistent across all environments
+   - For production, use a secure secret management solution
 
 4. Generate a Gmail App Password:
    - Go to your Google Account settings: https://myaccount.google.com/

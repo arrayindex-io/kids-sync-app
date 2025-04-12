@@ -6,12 +6,12 @@ const API_BASE_URL = 'http://localhost:8080/api';
 // Common headers for all requests
 const getHeaders = () => {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   };
-  
+
   // Add Authorization header if token exists
-  const token = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+  const token = localStorage.getItem('token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -35,6 +35,7 @@ export interface Event {
 export interface User {
   id: number;
   email: string;
+  name: string;
   whatsappNumber: string;
   emailNotifications: boolean;
   whatsappNotifications: boolean;
@@ -48,29 +49,28 @@ export interface SignupData {
   whatsappNumber?: string;
 }
 
+// User update types
+export interface UserUpdateData extends Omit<User, 'id'> {
+  password?: string;
+}
+
 // API functions
 export const api = {
   // Auth
-  signup: async (data: SignupData): Promise<{ token: string }> => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  signup: async (email: string, password: string): Promise<{ token: string }> => {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        email: data.email,
-        password: data.password,
-        whatsappNumber: data.whatsappNumber || ''
-      }),
+      body: JSON.stringify({ email, password }),
     });
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Registration failed');
+      throw new Error(errorData.message || 'Signup failed');
     }
     const responseData = await response.json();
-    // Store the token in a cookie
-    document.cookie = `token=${responseData.token}; path=/; max-age=86400; SameSite=Lax`;
+    localStorage.setItem('token', responseData.token);
     return responseData;
   },
 
@@ -79,7 +79,6 @@ export const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
       body: JSON.stringify({ email, password }),
     });
@@ -87,51 +86,59 @@ export const api = {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Login failed');
     }
-    const data = await response.json();
-    // Store the token in a cookie
-    document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-    return data;
+    const responseData = await response.json();
+    localStorage.setItem('token', responseData.token);
+    return responseData;
   },
 
   logout: async (): Promise<void> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: getHeaders(),
       });
-      if (!response.ok) {
+      if (!response.ok) { 
         throw new Error('Logout failed');
       }
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
-      // Always remove the token cookie
-      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      // Always remove the token from localStorage
+      localStorage.removeItem('token');
       window.location.href = '/login';
+    }
+  },
+
+  updateProfile: async (data: { name?: string; password?: string }): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Profile update failed");
     }
   },
 
   // Events
   getEvents: async (): Promise<Event[]> => {
     try {
-      console.log('API: Fetching events...')
+      console.log("API: Fetching events...");
       const response = await fetch(`${API_BASE_URL}/events`, {
         headers: getHeaders(),
       });
-      
-      console.log('API: Events response status:', response.status)
+      console.log("API: Events response status:", response.status);
       
       if (!response.ok) {
         if (response.status === 401) {
-          console.log('API: Unauthorized, redirecting to login')
           window.location.href = '/login';
           return [];
         }
         throw new Error('Failed to fetch events');
       }
-      
-      const data = await response.json()
-      console.log('API: Fetched events data:', data)
+
+      const data = await response.json();
       
       // Validate event data
       data.forEach((event: Event, index: number) => {
@@ -139,7 +146,7 @@ export const api = {
         if (!event.dateTime) {
           console.warn(`API: Event ${index} has no dateTime:`, event)
         }
-      })
+      });
       
       return data;
     } catch (error) {
@@ -162,17 +169,17 @@ export const api = {
       }
       return response.json();
     } catch (error) {
-      console.error('Error fetching upcoming events:', error);
+      console.error("Error fetching upcoming events:", error);
       return []; // Return empty array instead of throwing
     }
   },
 
   getEventsByDateRange: async (startDate: string, endDate: string): Promise<Event[]> => {
     try {
-      console.log('API: Fetching events by date range:', startDate, 'to', endDate);
+      console.log("API: Fetching events by date range:", startDate, "to", endDate);
       const response = await fetch(`${API_BASE_URL}/events/range?start=${encodeURIComponent(startDate)}&end=${encodeURIComponent(endDate)}`, {
         headers: getHeaders(),
-      });
+      }); 
       
       console.log('API: Date range response status:', response.status);
       
@@ -185,7 +192,7 @@ export const api = {
         throw new Error('Failed to fetch events by date range');
       }
       
-      const data = await response.json();
+      const data = await response.json(); 
       console.log('API: Fetched events by date range:', data);
       
       return data;
@@ -210,7 +217,7 @@ export const api = {
   },
 
   createEvent: async (event: Omit<Event, 'id' | 'userId'>): Promise<Event> => {
-    const response = await fetch(`${API_BASE_URL}/events`, {
+    const response = await fetch(`${API_BASE_URL}/events`, { 
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({
@@ -231,18 +238,18 @@ export const api = {
   },
 
   updateEvent: async (eventId: string, eventData: Partial<Event>): Promise<Event> => {
-    console.log('API: Updating event with ID:', eventId);
-    console.log('API: Update data:', eventData);
+    console.log("API: Updating event with ID:", eventId);
+    console.log("API: Update data:", eventData);
     
+
     const response = await fetch(`${API_BASE_URL}/events/${eventId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...getHeaders(),
-      },
+      }, 
       body: JSON.stringify(eventData),
     });
-
     if (response.status === 401) {
       window.location.href = '/login';
       throw new Error('Unauthorized');
@@ -250,7 +257,7 @@ export const api = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('API: Update event error:', errorData);
+      console.error("API: Update event error:", errorData);
       throw new Error(`Failed to update event: ${errorData.message || 'Unknown error'}`);
     }
 
@@ -258,16 +265,16 @@ export const api = {
   },
 
   deleteEvent: async (id: string): Promise<void> => {
-    console.log('API: Deleting event with ID:', id);
+    console.log("API: Deleting event with ID:", id);
     
+
     const response = await fetch(`${API_BASE_URL}/events/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: getHeaders(),
     });
-    
     if (!response.ok) {
       if (response.status === 401) {
-        window.location.href = '/login';
+        window.location.href = "/login";
         throw new Error('Unauthorized');
       }
       const errorData = await response.json().catch(() => ({}));
@@ -279,7 +286,7 @@ export const api = {
   // User settings
   getUserSettings: async (): Promise<User> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/me`, {
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
         headers: getHeaders(),
         credentials: 'include',
       });
@@ -289,6 +296,7 @@ export const api = {
           return {
             id: 1,
             email: '',
+            name: '',
             whatsappNumber: '',
             emailNotifications: true,
             whatsappNotifications: false,
@@ -303,6 +311,7 @@ export const api = {
       return {
         id: 1,
         email: '',
+        name: '',
         whatsappNumber: '',
         emailNotifications: true,
         whatsappNotifications: false,
@@ -310,20 +319,31 @@ export const api = {
     }
   },
 
-  updateUserSettings: async (settings: Partial<User>): Promise<User> => {
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
+  updateUserSettings: async (settings: UserUpdateData): Promise<User> => {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
       method: 'PUT',
-      headers: getHeaders(),
-      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
       body: JSON.stringify(settings),
     });
     if (!response.ok) {
-      if (response.status === 401) {
-        window.location.href = '/login';
-        throw new Error('Unauthorized');
-      }
       throw new Error('Failed to update user settings');
+    }
+    const data = await response.json();
+    return data;
+  },
+
+  getCurrentUser: async (): Promise<User> => {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch current user');
     }
     return response.json();
   },
-}; 
+};
