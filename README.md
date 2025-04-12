@@ -22,6 +22,7 @@ A Spring Boot application for managing kids' activities and schedules with email
 - Maven
 - Next.js 15.2.4 (Frontend)
 
+
 ## Screenshots
 
 ![Kids Sync App Dashboard](screenshots/KidsSync-App-Img.png)

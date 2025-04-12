@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { Switch } from '@headlessui/react'
 import { api, User } from '../services/api'
 
@@ -12,8 +12,11 @@ export default function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [whatsappNotifications, setWhatsappNotifications] = useState(false)
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     whatsappNumber: '',
+    password:'',
+    confirmPassword:'',
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,6 +28,7 @@ export default function Settings() {
         setLoading(true)
         const userData = await api.getUserSettings()
         setFormData({
+          name:userData.name ||'',
           email: userData.email,
           whatsappNumber: userData.whatsappNumber || '',
         })
@@ -42,19 +46,39 @@ export default function Settings() {
     fetchUserSettings()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    try {
-      setSaving(true)
-      await api.updateUserSettings({
-        ...formData,
+    setError(null)
+
+    const { confirmPassword, ...signupData } = formData;
+    const profileData: { name?: string; password?: string } = {};
+
+    if (formData.name) {
+        profileData.name = formData.name;
+    }
+    if (formData.password) {
+        profileData.password = formData.password;
+    }
+
+    const settingsData = {
+        email: formData.email,
+        whatsappNumber: formData.whatsappNumber,
         emailNotifications,
         whatsappNotifications,
-      })
-      alert('Settings updated successfully!')
-    } catch (err) {
-      console.error('Error updating settings:', err)
-      alert('Failed to update settings. Please try again.')
+    };
+
+
+    try {
+      setSaving(true)
+      const promises = [];
+      if (Object.keys(profileData).length > 0) {
+        promises.push(api.updateProfile(profileData));
+      }
+      promises.push(api.updateUserSettings(settingsData))
+      await Promise.all(promises)
+        alert('Settings updated successfully!')    } catch (err:any) {
+        console.error('Error updating settings:', err);
+        setError(err.message || 'Failed to update settings. Please try again.');
     } finally {
       setSaving(false)
     }
@@ -93,9 +117,25 @@ export default function Settings() {
                   <div className="px-4 py-6 sm:p-8">
                     <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                       <div className="sm:col-span-4">
+                      <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
+                                Name
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    id="name"
+                                    name="name"
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                />
+                            </div>
+                        </div>
+                      <div className="sm:col-span-4">
                         <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
                           Email address
                         </label>
+
                         <div className="mt-2">
                           <input
                             id="email"
@@ -123,6 +163,37 @@ export default function Settings() {
                             placeholder="+1 (555) 987-6543"
                           />
                         </div>
+                      </div>
+                      <div className="sm:col-span-4">
+                      <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                          Password
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            placeholder="New Password"
+                          />
+                        </div>
+                      </div>
+                      <div className="sm:col-span-4">
+                      <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-gray-900">
+                          Confirm Password
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            value={formData.confirmPassword}
+                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            placeholder="Confirm New Password"
+                          />
                       </div>
                     </div>
                   </div>
