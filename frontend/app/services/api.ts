@@ -3,6 +3,39 @@
 // API base URL - adjust this to match your backend URL
 const API_BASE_URL = 'http://localhost:8080/api';
 
+// Helper functions for token management
+const getToken = () => {
+  // Try to get token from localStorage first (for backward compatibility)
+  const localToken = localStorage.getItem('token');
+  if (localToken) return localToken;
+  
+  // If not in localStorage, try to get from cookies
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.startsWith('token=')) {
+      return cookie.substring(6);
+    }
+  }
+  return null;
+};
+
+const setToken = (token: string) => {
+  // Store in localStorage for backward compatibility
+  localStorage.setItem('token', token);
+  
+  // Also store in cookies for middleware access
+  document.cookie = `token=${token}; path=/; max-age=86400`; // 24 hours
+};
+
+const removeToken = () => {
+  // Remove from localStorage
+  localStorage.removeItem('token');
+  
+  // Remove from cookies
+  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+};
+
 // Common headers for all requests
 const getHeaders = () => {
   const headers: Record<string, string> = {
@@ -11,7 +44,7 @@ const getHeaders = () => {
   };
 
   // Add Authorization header if token exists
-  const token = localStorage.getItem('token');
+  const token = getToken();
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -70,7 +103,7 @@ export const api = {
       throw new Error(errorData.message || 'Signup failed');
     }
     const responseData = await response.json();
-    localStorage.setItem('token', responseData.token);
+    setToken(responseData.token);
     return responseData;
   },
 
@@ -87,7 +120,7 @@ export const api = {
       throw new Error(errorData.message || 'Login failed');
     }
     const responseData = await response.json();
-    localStorage.setItem('token', responseData.token);
+    setToken(responseData.token);
     return responseData;
   },
 
@@ -103,8 +136,8 @@ export const api = {
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
-      // Always remove the token from localStorage
-      localStorage.removeItem('token');
+      // Always remove the token
+      removeToken();
       window.location.href = '/login';
     }
   },
@@ -134,8 +167,8 @@ export const api = {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to delete profile');
     }
-    // Clear local storage after successful deletion
-    localStorage.removeItem('token');
+    // Clear token after successful deletion
+    removeToken();
   },
 
   // Events
@@ -360,7 +393,7 @@ export const api = {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${getToken()}`,
       },
       body: JSON.stringify(settings),
     });
@@ -374,7 +407,7 @@ export const api = {
   getCurrentUser: async (): Promise<User> => {
     const response = await fetch(`${API_BASE_URL}/auth/profile`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${getToken()}`,
       },
     });
     if (!response.ok) {
