@@ -186,11 +186,11 @@ export default function Calendar() {
   }
 
   return (
-    <div className="py-10">
+    <div className="py-6">
       <header>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-4">
           <div className="md:flex md:items-center md:justify-between">
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 mb-4 md:mb-0">
               <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
                 Calendar
               </h2>
@@ -200,7 +200,7 @@ export default function Calendar() {
                 <button
                   type="button"
                   onClick={goToPreviousMonth}
-                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   <ChevronLeftIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
                   Previous
@@ -209,7 +209,7 @@ export default function Calendar() {
                 <button
                   type="button"
                   onClick={goToNextMonth}
-                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   Next
                   <ChevronRightIcon className="-mr-0.5 ml-1.5 h-5 w-5" aria-hidden="true" />
@@ -217,7 +217,7 @@ export default function Calendar() {
                 <button
                   type="button"
                   onClick={fetchEvents}
-                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                   disabled={loading}
                 >
                   <ArrowPathIcon className={`-ml-0.5 mr-1.5 h-5 w-5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
@@ -228,7 +228,7 @@ export default function Calendar() {
                   onClick={() => {
                     setSelectedDate(new Date())
                     setIsNewEventFormOpen(true)
-                  }}
+                   }}
                   className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >
                   <PlusIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
@@ -290,15 +290,15 @@ export default function Calendar() {
               </div>
             )}
           </div>
-        </div>
+          </div>
       </header>
-      <main>
+      <main className="bg-gray-100 rounded-lg p-4 shadow-md">
         <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
           {loading ? (
-            <div className="text-center py-10">
-              <p className="text-gray-500">Loading calendar...</p>
+            <div className="text-center py-10 mt-4">
+              <p className="text-gray-700">Loading calendar...</p>
             </div>
-          ) : error ? (
+           ) : error ? (
             <div className="text-center py-10">
               <p className="text-red-500">{error}</p>
             </div>
@@ -306,24 +306,24 @@ export default function Calendar() {
             <>
               <div className="mt-8 overflow-hidden bg-white shadow sm:rounded-lg">
                 <div className="grid grid-cols-7 gap-px border-b border-gray-300 bg-gray-200 text-center text-xs font-semibold leading-6 text-gray-700">
-                  <div className="bg-white py-1.5">Sun</div>
-                  <div className="bg-white py-1.5">Mon</div>
-                  <div className="bg-white py-1.5">Tue</div>
-                  <div className="bg-white py-1.5">Wed</div>
-                  <div className="bg-white py-1.5">Thu</div>
-                  <div className="bg-white py-1.5">Fri</div>
-                  <div className="bg-white py-1.5">Sat</div>
+                  <div className="bg-white py-2">Sun</div>
+                  <div className="bg-white py-2">Mon</div>
+                  <div className="bg-white py-2">Tue</div>
+                  <div className="bg-white py-2">Wed</div>
+                  <div className="bg-white py-2">Thu</div>
+                  <div className="bg-white py-2">Fri</div>
+                  <div className="bg-white py-2">Sat</div>
                 </div>
-                <div className="flex bg-gray-200 text-xs leading-6 text-gray-700">
+                <div className="flex bg-gray-100 text-xs leading-6 text-gray-700">
                   <div className="w-full grid grid-cols-7 grid-rows-6 gap-px">
                     {days.map((day, dayIdx) => {
                       // Log days with events
                       if (day.events.length > 0) {
-                        console.log(`Day ${day.date?.toISOString().split('T')[0]} has ${day.events.length} events:`, day.events)
+                        console.log(`Day ${day.date?.toISOString().split('T')[0]} has ${day.events.length} events:`, day.events);
                       }
                       
                       return (
-                        <div
+                         <div
                           key={dayIdx}
                           className={classNames(
                             day.date ? 'bg-white hover:bg-gray-50 cursor-pointer transition-colors duration-150' : 'bg-gray-50',
@@ -331,8 +331,8 @@ export default function Calendar() {
                             day.date.getMonth() === new Date().getMonth() && 
                             day.date.getFullYear() === new Date().getFullYear() 
                               ? 'ring-2 ring-indigo-500 bg-indigo-50' 
-                              : '',
-                            'relative py-2 px-3 min-h-[100px]'
+                               : '',
+                            'relative py-2 px-3 min-h-[100px] hover:bg-gray-100 transition-colors duration-150'
                           )}
                           onClick={() => day.date && handleDayClick(day.date)}
                           title={day.date ? "Click to create an event on this day" : ""}
@@ -341,13 +341,13 @@ export default function Calendar() {
                             <div className="flex justify-between items-center">
                               <time
                                 dateTime={day.date.toISOString().split('T')[0]}
-                                className={classNames(
+                                className={classNames('text-sm',
                                   day.date.getDate() === new Date().getDate() &&
                                   day.date.getMonth() === new Date().getMonth() &&
                                   day.date.getFullYear() === new Date().getFullYear()
                                     ? 'font-semibold text-indigo-600'
-                                    : 'text-gray-900',
-                                  'text-sm'
+                                    : 'text-gray-700'
+                                  
                                 )}
                               >
                                 {day.date.getDate()}
@@ -369,7 +369,7 @@ export default function Calendar() {
                             <ol className="mt-2">
                               {day.events.map((event) => (
                                 <li key={event.id} className="group flex">
-                                  <div
+                                   <div
                                     className="flex-auto truncate p-2 text-xs leading-5 text-white bg-indigo-600 rounded-md mb-1 group-hover:bg-indigo-700 cursor-pointer"
                                     onMouseEnter={(e) => {
                                       setHoveredEvent(event);
@@ -419,7 +419,7 @@ export default function Calendar() {
               {hoveredEvent && (
                 <div 
                   className="fixed z-10 bg-white shadow-lg rounded-md p-4 max-w-xs border border-gray-200"
-                  style={{
+                  style={ {
                     left: `${tooltipPosition.x}px`,
                     top: `${tooltipPosition.y}px`,
                     transform: 'translateY(10px)',
@@ -450,7 +450,7 @@ export default function Calendar() {
               
               {/* Debug section */}
               <div className="mt-8 overflow-hidden bg-white shadow sm:rounded-lg p-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Debug Information</h3>
+                 <h3 className="text-lg font-medium text-gray-900 mb-2">Debug Information</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-700">Current Month: {monthYear}</h4>
@@ -482,5 +482,5 @@ export default function Calendar() {
         </div>
       </main>
     </div>
-  )
+  );
 } 
