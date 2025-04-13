@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent } from 'react'
 import { Switch } from '@headlessui/react'
 import { api } from '../services/api'
+import { useRouter } from 'next/navigation'
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
@@ -22,6 +23,7 @@ interface UserUpdateData extends Omit<User, 'id'> {
 }
 
 export default function Settings() {
+  const router = useRouter();
   const [emailNotifications, setEmailNotifications] = useState(false)
   const [whatsappNotifications, setWhatsappNotifications] = useState(false)
   const [formData, setFormData] = useState({
@@ -34,6 +36,8 @@ export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -48,8 +52,10 @@ export default function Settings() {
         });
         setEmailNotifications(user.emailNotifications);
         setWhatsappNotifications(user.whatsappNotifications);
+        setLoading(false);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch user data');
+        setLoading(false);
       }
     };
     fetchUserData();
@@ -103,6 +109,37 @@ export default function Settings() {
       setSaving(false);
     }
   };
+
+  const handleDeleteProfile = async () => {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await api.deleteProfile();
+      // Redirect to login page after successful deletion
+      router.push('/login');
+    } catch (err) {
+      console.error('Error deleting profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete profile');
+      setShowDeleteConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -204,6 +241,47 @@ export default function Settings() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Delete Profile Section */}
+        <div className="mt-8 bg-white shadow sm:rounded-lg">
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Danger Zone
+            </h3>
+            <div className="mt-2 max-w-xl text-sm text-gray-500">
+              <p>Once you delete your account, there is no going back. Please be certain.</p>
+            </div>
+            <div className="mt-5 flex justify-center">
+              {showDeleteConfirm ? (
+                <div className="text-center">
+                  <p className="text-red-600 font-medium mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
+                  <div className="flex justify-center space-x-4">
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteProfile}
+                      disabled={deleting}
+                      className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting...' : 'Yes, Delete My Account'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={handleDeleteProfile}
+                  className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                >
+                  Delete Account
+                </button>
+              )}
             </div>
           </div>
         </div>

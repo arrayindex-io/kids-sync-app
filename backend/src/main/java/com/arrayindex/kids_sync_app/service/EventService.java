@@ -57,4 +57,10 @@ public interface EventService {
      * @return List of events
      */
     List<Event> getEventsByDateRange(String userId, LocalDateTime start, LocalDateTime end);
+    
+    /**
+     * Delete all events for a specific user
+     * @param userId The ID of the user
+     */
+    void deleteAllUserEvents(String userId);
 } 

@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (request.getEmail() != null) {
-            user.setEmail(request.getName());
+            user.setEmail(request.getEmail());
         }
 
         if (request.getWhatsappNumber() != null) {

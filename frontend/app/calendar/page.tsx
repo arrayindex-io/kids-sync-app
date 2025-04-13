@@ -12,10 +12,10 @@ function classNames(...classes: (string | boolean)[]) {
 
 export default function Calendar() {
   const router = useRouter()
+  const [currentDate, setCurrentDate] = useState<Date | null>(null)
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [currentDate, setCurrentDate] = useState(new Date())
   const [hoveredEvent, setHoveredEvent] = useState<Event | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   const [isNewEventFormOpen, setIsNewEventFormOpen] = useState(false)
@@ -24,7 +24,14 @@ export default function Calendar() {
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
 
+  // Initialize currentDate on client-side only
+  useEffect(() => {
+    setCurrentDate(new Date())
+  }, [])
+
   const fetchEvents = async () => {
+    if (!currentDate) return; // Don't fetch if currentDate is not initialized
+    
     try {
       setLoading(true)
       
@@ -72,24 +79,16 @@ export default function Calendar() {
   }
 
   useEffect(() => {
-    fetchEvents()
-    
-    // Check if current month is April 2024
-    const isApril2024 = currentDate.getMonth() === 3 && currentDate.getFullYear() === 2024
-    console.log('Current month is April 2024:', isApril2024)
-    
-    // If not April 2024, automatically navigate to April 2024
-    if (!isApril2024) {
-      console.log('Navigating to April 2024')
-      setCurrentDate(new Date(2024, 3, 1)) // April is month 3 (0-indexed)
+    if (currentDate) {
+      fetchEvents()
     }
-  }, [currentDate, useDateRange, startDate, endDate]) // Add dependencies to refetch events when they change
+  }, [currentDate, useDateRange, startDate, endDate])
 
   // Get the first day of the current month
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+  const firstDayOfMonth = currentDate ? new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) : new Date()
   
   // Get the last day of the current month
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+  const lastDayOfMonth = currentDate ? new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0) : new Date()
   
   // Get the day of the week for the first day of the month (0 = Sunday, 1 = Monday, etc.)
   const firstDayOfWeek = firstDayOfMonth.getDay()
@@ -107,7 +106,7 @@ export default function Calendar() {
   
   // Add cells for each day of the month
   for (let i = 1; i <= daysInMonth; i++) {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i)
+    const date = currentDate ? new Date(currentDate.getFullYear(), currentDate.getMonth(), i) : new Date()
     // Format the date as YYYY-MM-DD for comparison
     const dateString = date.toISOString().split('T')[0]
     
@@ -135,24 +134,36 @@ export default function Calendar() {
 
   // Function to go to the previous month
   const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+    if (currentDate) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+    }
   }
 
   // Function to go to the next month
   const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+    if (currentDate) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
+    }
   }
 
   // Format the current month and year for display
-  const monthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+  const monthYear = currentDate ? currentDate.toLocaleString('default', { month: 'long', year: 'numeric' }) : 'Loading...'
 
   const handleCreateEvent = async (eventData: any) => {
     try {
+      setLoading(true)
       await api.createEvent(eventData)
       setIsNewEventFormOpen(false)
+      setSelectedDate(null)
+      // Show success message
+      alert('Event created successfully!')
+      // Refresh events
       fetchEvents()
     } catch (err) {
       console.error('Error creating event:', err)
+      alert('Failed to create event. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -164,12 +175,13 @@ export default function Calendar() {
   const handleDateRangeToggle = () => {
     setUseDateRange(!useDateRange)
     if (!useDateRange) {
-      // Set default date range to April 2024 (when the events are from)
-      const firstDay = new Date(2024, 3, 1) // April 1, 2024 (month is 0-indexed)
-      const lastDay = new Date(2024, 3, 30) // April 30, 2024
+      // Set default date range from today to one year in the future
+      const today = new Date()
+      const oneYearFromNow = new Date()
+      oneYearFromNow.setFullYear(today.getFullYear() + 1)
       
-      setStartDate(firstDay.toISOString().split('T')[0])
-      setEndDate(lastDay.toISOString().split('T')[0])
+      setStartDate(today.toISOString().split('T')[0])
+      setEndDate(oneYearFromNow.toISOString().split('T')[0])
     }
   }
 
@@ -315,6 +327,11 @@ export default function Calendar() {
                           key={dayIdx}
                           className={classNames(
                             day.date ? 'bg-white hover:bg-gray-50 cursor-pointer transition-colors duration-150' : 'bg-gray-50',
+                            day.date && day.date.getDate() === new Date().getDate() && 
+                            day.date.getMonth() === new Date().getMonth() && 
+                            day.date.getFullYear() === new Date().getFullYear() 
+                              ? 'ring-2 ring-indigo-500 bg-indigo-50' 
+                              : '',
                             'relative py-2 px-3 min-h-[100px]'
                           )}
                           onClick={() => day.date && handleDayClick(day.date)}

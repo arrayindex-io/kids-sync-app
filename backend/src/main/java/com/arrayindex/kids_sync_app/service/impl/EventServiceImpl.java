@@ -111,4 +111,19 @@ public class EventServiceImpl implements EventService {
         
         return events;
     }
+
+    @Override
+    public void deleteAllUserEvents(String userId) {
+        log.info("Deleting all events for user: {}", userId);
+        List<Event> userEvents = eventRepository.findByUserId(userId);
+        
+        for (Event event : userEvents) {
+            // Cancel any existing reminders
+            reminderService.cancelReminder(event.getId());
+            // Delete the event
+            eventRepository.delete(event);
+        }
+        
+        log.info("Deleted {} events for user: {}", userEvents.size(), userId);
+    }
 } 
