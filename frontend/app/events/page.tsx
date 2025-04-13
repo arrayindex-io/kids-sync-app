@@ -119,7 +119,7 @@ export default function Events() {
     return <div className="text-center text-red-600 py-4">{error}</div>
   }
 
- return (
+  return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -129,20 +129,19 @@ export default function Events() {
           </p>
         </div>
         <button
-            type="button" 
-            onClick={() => setIsNewEventFormOpen(true)}
-            className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add event
-          </button>
-        </div>
+          type="button" 
+          onClick={() => setIsNewEventFormOpen(true)}
+          className="block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          Add event
+        </button>
       </div>
       
       {/* Date Range Selection */}
       <div className="flex items-center space-x-4 mb-6">
         <div className="flex items-center space-x-2">
           <input
-             type="checkbox"
+            type="checkbox"
             id="useDateRange"
             checked={useDateRange}
             onChange={handleDateRangeToggle}
@@ -192,69 +191,53 @@ export default function Events() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <div key={event.id} className="bg-white rounded-lg shadow-md p-4">
-              <div className="flex justify-between items-center mb-2">
-                 <h3 className="text-lg font-semibold text-gray-700">{event.name}</h3>
-
-                <div className="flex space-x-2">
-                    <button
-                        onClick={() => openEditForm(event)}
-                        className="text-indigo-600 hover:text-indigo-900 focus:outline-none"
-                      >
-                        <PencilIcon className="h-5 w-5" aria-hidden="true" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEvent(event.id)}
-                        className="text-red-600 hover:text-red-900 focus:outline-none"
-                      >
-                        <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                      </button>
-                  </div>
+        {events.map((event) => (
+          <div key={event.id} className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold text-gray-700">{event.name}</h3>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => openEditForm(event)}
+                  className="text-gray-600 hover:text-indigo-600"
+                >
+                  <PencilIcon className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteEvent(event.id)}
+                  className="text-gray-600 hover:text-red-600"
+                >
+                  <TrashIcon className="h-5 w-5" />
+                </button>
               </div>
-              <div className="flex space-x-4 text-sm text-gray-600">
-                <p>
-                   <span className="font-medium">Date:</span>
-                  {new Date(event.dateTime).toLocaleString()}
-                </p>
-                 {event.recurrence && (
-                     <p>
-                        <span className="font-medium">Recurrence:</span> {event.recurrence}
-                     </p>
-                  )}
-               
-              </div>
-             
-             {event.notes && (
-                <div className="mt-2">
-                   <p className="text-gray-600">
-                     <span className="font-medium">Notes:</span> {event.notes}
-                     </p>
-                 </div>
-              )}
-               
             </div>
-          ))}
-      </div>
-      <div className="mt-8">
-        <div className="mt-6">
-           
+            <p className="text-gray-600 mb-2">{event.notes}</p>
+            <div className="text-sm text-gray-500">
+              <p>Date: {new Date(event.dateTime).toLocaleDateString()}</p>
+              <p>Time: {new Date(event.dateTime).toLocaleTimeString()}</p>
+              {event.recurrence !== 'NONE' && (
+                <p>Recurrence: {event.recurrence}</p>
+              )}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
 
-      <NewEventForm
-        open={isNewEventFormOpen}
-        setOpen={setIsNewEventFormOpen}
-        onSubmit={handleCreateEvent}
-      />
+      {isNewEventFormOpen && (
+        <NewEventForm
+          open={isNewEventFormOpen}
+          setOpen={setIsNewEventFormOpen}
+          onSubmit={handleCreateEvent}
+        />
+      )}
 
-      <EditEventForm
-        open={isEditEventFormOpen}
-        setOpen={setIsEditEventFormOpen}
-        onSubmit={handleEditEvent}
-        event={selectedEvent}
-      />
+      {isEditEventFormOpen && selectedEvent && (
+        <EditEventForm
+          open={isEditEventFormOpen}
+          setOpen={setIsEditEventFormOpen}
+          event={selectedEvent}
+          onSubmit={handleEditEvent}
+        />
+      )}
     </div>
   )
 }
