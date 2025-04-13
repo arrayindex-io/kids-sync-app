@@ -4,7 +4,7 @@ import { Fragment, useState, useEffect } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { api } from '../services/api'
 
 const navigation = [
@@ -20,67 +20,93 @@ function classNames(...classes: string[]) {
 
 export default function Navigation() {
   const router = useRouter()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userInitial, setUserInitial] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      // Check for token in localStorage
-      const token = localStorage.getItem('token')
-      
-      if (token) {
-        setIsAuthenticated(true)
-        try {
-          // Try to get user info to confirm token is valid
-          const user = await api.getCurrentUser()
-          if (user && user.name) {
-            setUserInitial(user.name.charAt(0).toUpperCase())
-          } else {
-            setUserInitial('U')
-          }
-        } catch (error) {
-          console.error('Error fetching user:', error)
-          // If there's an error, the token might be invalid
+  // Check authentication status
+  const checkAuth = async () => {
+    // Check for token in localStorage
+    const token = localStorage.getItem('token')
+    
+    if (token) {
+      try {
+        // Try to get user info to confirm token is valid
+        const user = await api.getCurrentUser()
+        if (user && user.name) {
+          setUserInitial(user.name.charAt(0).toUpperCase())
+          setIsAuthenticated(true)
+        } else {
           setIsAuthenticated(false)
-          localStorage.removeItem('token')
+          setUserInitial('')
         }
-      } else {
-        // Also check for token in cookies
-        const cookies = document.cookie.split(';')
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim()
-          if (cookie.startsWith('token=')) {
-            const token = cookie.substring(6)
-            if (token) {
-              setIsAuthenticated(true)
-              try {
-                const user = await api.getCurrentUser()
-                if (user && user.name) {
-                  setUserInitial(user.name.charAt(0).toUpperCase())
-                } else {
-                  setUserInitial('U')
-                }
-              } catch (error) {
-                console.error('Error fetching user:', error)
+      } catch (error) {
+        console.error('Error fetching user:', error)
+        // If there's an error, the token might be invalid
+        setIsAuthenticated(false)
+        setUserInitial('')
+        localStorage.removeItem('token')
+      }
+    } else {
+      // Also check for token in cookies
+      const cookies = document.cookie.split(';')
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim()
+        if (cookie.startsWith('token=')) {
+          const token = cookie.substring(6)
+          if (token) {
+            try {
+              const user = await api.getCurrentUser()
+              if (user && user.name) {
+                setUserInitial(user.name.charAt(0).toUpperCase())
+                setIsAuthenticated(true)
+              } else {
                 setIsAuthenticated(false)
+                setUserInitial('')
               }
-              break
+            } catch (error) {
+              console.error('Error fetching user:', error)
+              setIsAuthenticated(false)
+              setUserInitial('')
             }
+            break
           }
         }
       }
+      
+      // If we get here and still not authenticated, ensure state is false
+      if (!isAuthenticated) {
+        setIsAuthenticated(false)
+        setUserInitial('')
+      }
     }
+  }
 
+  // Check auth on initial load
+  useEffect(() => {
     checkAuth()
   }, [])
+
+  // Set up an interval to periodically check authentication status
+  useEffect(() => {
+    const intervalId = setInterval(checkAuth, 5000) // Check every 5 seconds
+    
+    return () => clearInterval(intervalId)
+  }, [])
+
+  // Also check auth when pathname changes (for navigation)
+  useEffect(() => {
+    checkAuth()
+  }, [pathname])
 
   const handleLogout = async () => {
     try {
       await api.logout()
       setIsAuthenticated(false)
+      setUserInitial('')
+      router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
       router.push('/login')
@@ -108,7 +134,7 @@ export default function Navigation() {
         <div className="flex h-16 justify-between items-center">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <span className="text-2xl font-bold text-white">Kids Sync</span>
+              <Link href="/" className="text-2xl font-bold text-white">Kids Sync</Link>
             </div>
             {isAuthenticated && (
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -116,7 +142,11 @@ export default function Navigation() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-white hover:border-white hover:text-white"
+                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
+                      pathname === item.href
+                        ? 'border-white text-white'
+                        : 'border-transparent text-white hover:border-white hover:text-white'
+                    }`}
                   >
                     {item.name}
                   </Link>
@@ -196,7 +226,11 @@ export default function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-white hover:border-white hover:bg-blue-600"
+                className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
+                  pathname === item.href
+                    ? 'border-white bg-blue-600 text-white'
+                    : 'border-transparent text-white hover:border-white hover:bg-blue-600'
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
