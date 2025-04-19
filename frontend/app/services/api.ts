@@ -97,7 +97,7 @@ export interface UserUpdateData extends Omit<User, 'id'> {
 // Add cache for user profile
 let userProfileCache: User | null = null;
 let lastProfileFetch: number = 0;
-const PROFILE_CACHE_DURATION = 30000; // 30 seconds
+const PROFILE_CACHE_DURATION = 300000; // 5 minutes
 
 // API functions
 export const api = {
@@ -425,37 +425,25 @@ export const api = {
     // Check if we have a cached profile that's still valid
     const now = Date.now();
     if (userProfileCache && (now - lastProfileFetch) < PROFILE_CACHE_DURATION) {
-      console.log('Using cached user profile');
       return userProfileCache;
     }
 
-    console.log('Fetching current user...');
-    const headers = getHeaders();
-    console.log('Request headers:', headers);
     const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-      headers,
+      headers: getHeaders(),
     });
-    console.log('Current user response status:', response.status);
-    
+
     if (response.status === 401) {
-      console.log('Unauthorized access, clearing tokens and redirecting to login');
-      // Clear all tokens and storage
-      removeToken();
-      localStorage.clear();
-      document.cookie.split(";").forEach(function(c) { 
-        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-      });
-      window.location.href = '/login';
+      // Clear cache on unauthorized
+      userProfileCache = null;
+      lastProfileFetch = 0;
       throw new Error('Unauthorized');
     }
-    
+
     if (!response.ok) {
-      console.error('Failed to fetch current user:', response.status);
       throw new Error('Failed to fetch current user');
     }
-    
+
     const user = await response.json();
-    console.log('Current user data:', user);
     
     // Update cache
     userProfileCache = user;

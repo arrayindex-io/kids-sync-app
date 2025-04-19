@@ -36,18 +36,13 @@ export default function Navigation() {
         return;
       }
 
-      console.log('Checking authentication status...');
       const user = await api.getCurrentUser();
-      console.log('Current user:', user);
       
       if (user && user.id && user.email) {
-        console.log('User is authenticated');
         const initial = user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
-        console.log('Setting initial:', initial);
         setUserInitial(initial);
         setIsAuthenticated(true);
       } else {
-        console.log('No valid user data, setting unauthenticated');
         setIsAuthenticated(false);
         setUserInitial('');
       }
@@ -58,20 +53,15 @@ export default function Navigation() {
     }
   }
 
-  // Check auth on initial load and pathname changes
+  // Check auth only on initial load
   useEffect(() => {
-    console.log('Auth check triggered by pathname change');
     checkAuth();
-  }, [pathname]);
+  }, []);
 
-  // Set up an interval to periodically check authentication status
-  // Only check if we're not on the login page
+  // Check auth when pathname changes to/from login
   useEffect(() => {
-    if (pathname !== '/login') {
-      console.log('Setting up auth check interval');
-      const intervalId = setInterval(checkAuth, 30000); // Check every 30 seconds
-      
-      return () => clearInterval(intervalId);
+    if (pathname === '/login' || pathname === '/') {
+      checkAuth();
     }
   }, [pathname]);
 
