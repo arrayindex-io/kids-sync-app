@@ -4,7 +4,7 @@ import { Fragment, useState, useEffect } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { api } from '../services/api'
 
 const navigation = [
@@ -20,67 +20,67 @@ function classNames(...classes: string[]) {
 
 export default function Navigation() {
   const router = useRouter()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userInitial, setUserInitial] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      // Check for token in localStorage
-      const token = localStorage.getItem('token')
-      
-      if (token) {
-        setIsAuthenticated(true)
-        try {
-          // Try to get user info to confirm token is valid
-          const user = await api.getCurrentUser()
-          if (user && user.name) {
-            setUserInitial(user.name.charAt(0).toUpperCase())
-          } else {
-            setUserInitial('U')
-          }
-        } catch (error) {
-          console.error('Error fetching user:', error)
-          // If there's an error, the token might be invalid
-          setIsAuthenticated(false)
-          localStorage.removeItem('token')
-        }
-      } else {
-        // Also check for token in cookies
-        const cookies = document.cookie.split(';')
-        for (let i = 0; i < cookies.length; i++) {
-          const cookie = cookies[i].trim()
-          if (cookie.startsWith('token=')) {
-            const token = cookie.substring(6)
-            if (token) {
-              setIsAuthenticated(true)
-              try {
-                const user = await api.getCurrentUser()
-                if (user && user.name) {
-                  setUserInitial(user.name.charAt(0).toUpperCase())
-                } else {
-                  setUserInitial('U')
-                }
-              } catch (error) {
-                console.error('Error fetching user:', error)
-                setIsAuthenticated(false)
-              }
-              break
-            }
-          }
-        }
+  // Check authentication status
+  const checkAuth = async () => {
+    try {
+      // Skip auth check if we're on the login page
+      if (pathname === '/login') {
+        setIsAuthenticated(false);
+        setUserInitial('');
+        return;
       }
-    }
 
-    checkAuth()
-  }, [])
+      console.log('Checking authentication status...');
+      const user = await api.getCurrentUser();
+      console.log('Current user:', user);
+      
+      if (user && user.id && user.email) {
+        console.log('User is authenticated');
+        const initial = user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
+        console.log('Setting initial:', initial);
+        setUserInitial(initial);
+        setIsAuthenticated(true);
+      } else {
+        console.log('No valid user data, setting unauthenticated');
+        setIsAuthenticated(false);
+        setUserInitial('');
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setIsAuthenticated(false);
+      setUserInitial('');
+    }
+  }
+
+  // Check auth on initial load and pathname changes
+  useEffect(() => {
+    console.log('Auth check triggered by pathname change');
+    checkAuth();
+  }, [pathname]);
+
+  // Set up an interval to periodically check authentication status
+  // Only check if we're not on the login page
+  useEffect(() => {
+    if (pathname !== '/login') {
+      console.log('Setting up auth check interval');
+      const intervalId = setInterval(checkAuth, 30000); // Check every 30 seconds
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
       await api.logout()
       setIsAuthenticated(false)
+      setUserInitial('')
+      router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
       router.push('/login')
@@ -103,12 +103,12 @@ export default function Navigation() {
   }, [])
 
   return (
-    <nav className="bg-white shadow">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          <div className="flex">
-            <div className="flex flex-shrink-0 items-center">
-              <span className="text-2xl font-bold text-blue-600">Kids Sync</span>
+    <nav className="bg-blue-500 text-white shadow-md rounded-b-lg">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2">
+        <div className="flex h-16 justify-between items-center">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <Link href="/" className="text-2xl font-bold text-white">Kids Sync</Link>
             </div>
             {isAuthenticated && (
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -116,7 +116,11 @@ export default function Navigation() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
+                      pathname === item.href
+                        ? 'border-white text-white'
+                        : 'border-transparent text-white hover:border-white hover:text-white'
+                    }`}
                   >
                     {item.name}
                   </Link>
@@ -128,7 +132,7 @@ export default function Navigation() {
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
               <button
                 type="button"
-                className="rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="rounded-full bg-blue-600 p-1 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500"
               >
                 <span className="sr-only">View notifications</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -141,10 +145,10 @@ export default function Navigation() {
                 <div>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="flex rounded-full bg-blue-600 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500"
                   >
                     <span className="sr-only">Open user menu</span>
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center">
                       <span className="text-blue-600 font-medium">{userInitial || 'U'}</span>
                     </div>
                   </button>
@@ -173,7 +177,7 @@ export default function Navigation() {
               {/* Mobile menu button */}
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                className="inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 <span className="sr-only">Open main menu</span>
@@ -196,26 +200,30 @@ export default function Navigation() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
+                className={`block border-l-4 py-2 pl-3 pr-4 text-base font-medium ${
+                  pathname === item.href
+                    ? 'border-white bg-blue-600 text-white'
+                    : 'border-transparent text-white hover:border-white hover:bg-blue-600'
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}
               </Link>
             ))}
           </div>
-          <div className="border-t border-gray-200 pb-3 pt-4">
+          <div className="border-t border-blue-400 pb-3 pt-4">
             <div className="flex items-center px-4">
               <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center">
                   <span className="text-blue-600 font-medium">{userInitial || 'U'}</span>
                 </div>
               </div>
               <div className="ml-3">
-                <div className="text-base font-medium text-gray-800">User</div>
+                <div className="text-base font-medium text-white">User</div>
               </div>
               <button
                 type="button"
-                className="ml-auto flex-shrink-0 rounded-full bg-white p-1 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="ml-auto flex-shrink-0 rounded-full bg-blue-600 p-1 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-500"
               >
                 <span className="sr-only">View notifications</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -226,13 +234,13 @@ export default function Navigation() {
             <div className="mt-3 space-y-1">
               <a
                 href="/settings"
-                className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                className="block px-4 py-2 text-base font-medium text-white hover:bg-blue-600"
               >
                 Your Profile
               </a>
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                className="block w-full text-left px-4 py-2 text-base font-medium text-white hover:bg-blue-600"
               >
                 Sign out
               </button>

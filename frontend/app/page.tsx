@@ -10,6 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [useDateRange, setUseDateRange] = useState(false)
+  const [showFullOverview, setShowFullOverview] = useState(false)
   const [startDate, setStartDate] = useState<string>('')
   const [endDate, setEndDate] = useState<string>('')
 
@@ -70,18 +71,35 @@ export default function Home() {
   ]
 
   return (
-    <div className="py-10">
-      <header>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">Dashboard</h1>
-        </div>
-      </header>
+    <div className="p-6">
+      {/* Welcome Message and Overview */}
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome to KidsSync!</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          {showFullOverview
+            ? "KidsSync is designed to help you manage your kids' events and activities easily. You can view upcoming events, filter events by date range, and see key statistics about your kids' activities. With KidsSync, staying organized has never been easier."
+            : "Manage your kids' events and activities easily. View upcoming events and more..."}
+        </p>
+        <button
+          onClick={() => setShowFullOverview(!showFullOverview)}
+          className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          {showFullOverview ? "Show Less" : "Learn More"}
+        </button>
+      </div>
+
       <main>
-        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+          {/* Dashboard Title */}
+          <header>
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h2>
+          </header>
+
           {/* Stats */}
-          <div className="mt-8">
+          <section className="mb-10">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {stats.map((item) => (
+              {stats.map((item, index) => (
                 <div key={item.name} className="relative overflow-hidden rounded-lg bg-white px-4 pb-12 pt-5 shadow sm:px-6 sm:pt-6">
                   <dt>
                     <div className="absolute rounded-md bg-indigo-500 p-3">
@@ -95,14 +113,15 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
           {/* Upcoming Events */}
-          <div className="mt-8">
-            <div className="overflow-hidden bg-white shadow sm:rounded-lg">
-              <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <section>
+            <div className="bg-white shadow rounded-lg overflow-hidden">
+              <div className="px-4 py-5 sm:px-6 flex justify-between items-center border-b border-gray-200">
                 <h3 className="text-lg font-medium leading-6 text-gray-900">
                   {useDateRange ? 'Events by Date Range' : 'Upcoming Events'}
+
                 </h3>
                 
                 {/* Date Range Selection */}
@@ -113,7 +132,7 @@ export default function Home() {
                       id="useDateRange"
                       checked={useDateRange}
                       onChange={handleDateRangeToggle}
-                      className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
                     />
                     <label htmlFor="useDateRange" className="ml-2 text-sm font-medium text-gray-700">
                       Filter by Date Range
@@ -131,7 +150,7 @@ export default function Home() {
                           id="startDate"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
                       <div className="flex items-center">
@@ -143,7 +162,7 @@ export default function Home() {
                           id="endDate"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         />
                       </div>
                     </div>
@@ -166,28 +185,28 @@ export default function Home() {
                 <ul role="list" className="divide-y divide-gray-200">
                   {upcomingEvents.map((event) => (
                     <li key={event.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex justify-between">
                         <div className="flex items-center">
-                          <p className="truncate text-sm font-medium text-indigo-600">{event.name}</p>
+                          <p className="truncate text-sm font-medium text-blue-600">{event.name}</p>
                           <p className="ml-2 flex-shrink-0 text-sm text-gray-500">
                             {new Date(event.dateTime).toLocaleDateString()} at {new Date(event.dateTime).toLocaleTimeString()}
                           </p>
                         </div>
                         <div className="ml-2 flex-shrink-0">
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             {event.recurrence}
                           </span>
                         </div>
                       </div>
-                      <div className="mt-2">
+                      <div className="mt-2 text-left">
                         <p className="text-sm text-gray-500">{event.notes}</p>
                       </div>
                     </li>
                   ))}
                 </ul>
               )}
-            </div>
-          </div>
+            </div>          
+          </section>
         </div>
       </main>
     </div>

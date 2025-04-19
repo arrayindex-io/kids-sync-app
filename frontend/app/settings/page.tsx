@@ -142,23 +142,23 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+    <div className="min-h-screen bg-white text-gray-700 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <div className="bg-white shadow rounded-lg p-6">
+          <div >
+            <h3 className="text-xl font-semibold text-gray-700">
               Account Settings
             </h3>
-            <div className="mt-5">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                  <div className="sm:col-span-4">
-                    <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
+            <div className="mt-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-6">
+                  <div className="sm:col-span-3">
+                    <label htmlFor="name" className="block text-sm font-medium">
                       Name
                     </label>
                     <div className="mt-2">
                       <input
-                        id="name"
+                        id="name" 
                         name="name"
                         type="text"
                         value={formData.name}
@@ -167,9 +167,9 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="sm:col-span-4">
-                    <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                      Email address
+                  <div className="sm:col-span-3">
+                    <label htmlFor="email" className="block text-sm font-medium">
+                      Email
                     </label>
                     <div className="mt-2">
                       <input
@@ -182,8 +182,8 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="sm:col-span-4">
-                    <label htmlFor="whatsapp" className="block text-sm font-medium leading-6 text-gray-900">
+                  <div className="sm:col-span-3">
+                    <label htmlFor="whatsapp" className="block text-sm font-medium">
                       WhatsApp Number
                     </label>
                     <div className="mt-2">
@@ -198,8 +198,8 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="sm:col-span-4">
-                    <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                  <div className="sm:col-span-3">
+                    <label htmlFor="password" className="block text-sm font-medium">
                       Password
                     </label>
                     <div className="mt-2">
@@ -214,8 +214,8 @@ export default function Settings() {
                       />
                     </div>
                   </div>
-                  <div className="sm:col-span-4">
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-gray-900">
+                  <div className="sm:col-span-3">
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium">
                       Confirm Password
                     </label>
                     <div className="mt-2">
@@ -232,10 +232,10 @@ export default function Settings() {
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
-                  <button
+                  <button 
                     type="submit"
                     disabled={saving}
-                    className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
@@ -244,25 +244,25 @@ export default function Settings() {
             </div>
           </div>
         </div>
-
+        
         {/* Delete Profile Section */}
-        <div className="mt-8 bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+        <div className="bg-white shadow rounded-lg p-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-700">
               Danger Zone
             </h3>
-            <div className="mt-2 max-w-xl text-sm text-gray-500">
-              <p>Once you delete your account, there is no going back. Please be certain.</p>
+            <div className="mt-2 text-sm text-gray-500">
+              <p>Once you delete your account, there is no going back. Please be certain.</p> 
             </div>
-            <div className="mt-5 flex justify-center">
+            <div className="mt-4 flex justify-center">
               {showDeleteConfirm ? (
-                <div className="text-center">
-                  <p className="text-red-600 font-medium mb-4">Are you sure you want to delete your account? This action cannot be undone.</p>
-                  <div className="flex justify-center space-x-4">
+                <div className="text-center space-y-4">
+                  <p className="text-red-600 font-semibold">Are you sure you want to delete your account? This action cannot be undone.</p>
+                  <div className="flex justify-center space-x-2">
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="rounded-md bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-500"
-                    >
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500">
+                   
                       Cancel
                     </button>
                     <button
@@ -277,7 +277,7 @@ export default function Settings() {
               ) : (
                 <button
                   onClick={handleDeleteProfile}
-                  className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                  className="bg-red-600 hover:bg-red-500 text-white font-semibold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
                   Delete Account
                 </button>
