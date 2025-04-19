@@ -28,78 +28,52 @@ export default function Navigation() {
 
   // Check authentication status
   const checkAuth = async () => {
-    // Check for token in localStorage
-    const token = localStorage.getItem('token')
-    
-    if (token) {
-      try {
-        // Try to get user info to confirm token is valid
-        const user = await api.getCurrentUser()
-        if (user && user.name) {
-          setUserInitial(user.name.charAt(0).toUpperCase())
-          setIsAuthenticated(true)
-        } else {
-          setIsAuthenticated(false)
-          setUserInitial('')
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error)
-        // If there's an error, the token might be invalid
-        setIsAuthenticated(false)
-        setUserInitial('')
-        localStorage.removeItem('token')
+    try {
+      // Skip auth check if we're on the login page
+      if (pathname === '/login') {
+        setIsAuthenticated(false);
+        setUserInitial('');
+        return;
       }
-    } else {
-      // Also check for token in cookies
-      const cookies = document.cookie.split(';')
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim()
-        if (cookie.startsWith('token=')) {
-          const token = cookie.substring(6)
-          if (token) {
-            try {
-              const user = await api.getCurrentUser()
-              if (user && user.name) {
-                setUserInitial(user.name.charAt(0).toUpperCase())
-                setIsAuthenticated(true)
-              } else {
-                setIsAuthenticated(false)
-                setUserInitial('')
-              }
-            } catch (error) {
-              console.error('Error fetching user:', error)
-              setIsAuthenticated(false)
-              setUserInitial('')
-            }
-            break
-          }
-        }
-      }
+
+      console.log('Checking authentication status...');
+      const user = await api.getCurrentUser();
+      console.log('Current user:', user);
       
-      // If we get here and still not authenticated, ensure state is false
-      if (!isAuthenticated) {
-        setIsAuthenticated(false)
-        setUserInitial('')
+      if (user && user.id && user.email) {
+        console.log('User is authenticated');
+        const initial = user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
+        console.log('Setting initial:', initial);
+        setUserInitial(initial);
+        setIsAuthenticated(true);
+      } else {
+        console.log('No valid user data, setting unauthenticated');
+        setIsAuthenticated(false);
+        setUserInitial('');
       }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setIsAuthenticated(false);
+      setUserInitial('');
     }
   }
 
-  // Check auth on initial load
+  // Check auth on initial load and pathname changes
   useEffect(() => {
-    checkAuth()
-  }, [])
+    console.log('Auth check triggered by pathname change');
+    checkAuth();
+  }, [pathname]);
 
   // Set up an interval to periodically check authentication status
+  // Only check if we're not on the login page
   useEffect(() => {
-    const intervalId = setInterval(checkAuth, 5000) // Check every 5 seconds
-    
-    return () => clearInterval(intervalId)
-  }, [])
-
-  // Also check auth when pathname changes (for navigation)
-  useEffect(() => {
-    checkAuth()
-  }, [pathname])
+    if (pathname !== '/login') {
+      console.log('Setting up auth check interval');
+      const intervalId = setInterval(checkAuth, 30000); // Check every 30 seconds
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
