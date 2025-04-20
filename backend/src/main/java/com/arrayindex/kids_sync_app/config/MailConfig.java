@@ -34,10 +34,18 @@ public class MailConfig {
         mailSender.setUsername(username);
         mailSender.setPassword(password);
 
+        Properties props = mailSender.getJavaMailProperties();
+
+        // Enable SMTP authentication
+        props.put("mail.smtp.auth", "true");
+
+        // Enable STARTTLS
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
+
         // Only enable debug in non-production environments
         boolean isDevMode = "dev".equals(activeProfile) || "test".equals(activeProfile);
         if (isDevMode) {
-            Properties props = mailSender.getJavaMailProperties();
             props.put("mail.debug", "true");
         }
 
