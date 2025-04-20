@@ -23,6 +23,9 @@ public class MailConfig {
     @Value("${spring.mail.password}")
     private String password;
 
+    @Value("${spring.profiles.active:prod}")
+    private String activeProfile;
+
     @Bean
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -31,12 +34,13 @@ public class MailConfig {
         mailSender.setUsername(username);
         mailSender.setPassword(password);
 
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
+        // Only enable debug in non-production environments
+        boolean isDevMode = "dev".equals(activeProfile) || "test".equals(activeProfile);
+        if (isDevMode) {
+            Properties props = mailSender.getJavaMailProperties();
+            props.put("mail.debug", "true");
+        }
 
         return mailSender;
     }
-} 
+}
