@@ -16,8 +16,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${GMAIL_USERNAME:anurawg.saxena@gmail.com}
-    password: ${GMAIL_APP_PASSWORD:xbvt vjjj ucrv bekn}
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -28,15 +28,6 @@ spring:
 # JWT Configuration
 jwt:
   secret: ${JWT_SECRET}
-
-# Resend Email Configuration
-resend:
-  from:
-    email: ${RESEND_FROM_EMAIL:onboarding@resend.dev}
-  api:
-    key: ${RESEND_API_KEY:re_KRCgTUxY_KyEqeVAwRseao9Yo2sAL8p2k}
-  test:
-    email: ${RESEND_TEST_EMAIL:anuragsaxena.ai@gmail.com}
 
 # Logging Configuration
 logging:
