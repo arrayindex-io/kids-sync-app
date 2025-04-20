@@ -7,6 +7,8 @@ A Spring Boot application for managing kids' activities and schedules with email
 - User authentication with JWT
 - Event management with recurrence support
 - Date range filtering for events
+- Configurable reminder windows with exponential scheduling
+- Smart reminder system with multiple notification points
 - Automated reminders via Email and WhatsApp
 - MongoDB integration for data persistence
 - Docker support for easy deployment
@@ -194,14 +196,26 @@ Content-Type: application/json
 }
 ```
 
-## Reminder System
+### Reminder System
 
-The application includes an automated reminder system that:
-- Schedules reminders for each event
-- Sends email notifications to users
-- Processes due reminders every minute
-- Automatically cancels reminders when events are updated or deleted
-- Supports recurring events with different patterns (daily, weekly, monthly)
+The application now supports a configurable reminder system with the following features:
+
+- Multiple reminder windows: 24 hours, 12 hours, 6 hours, 1 hour, and 5 minutes before events
+- Smart scheduling that prevents duplicate reminders
+- Automatic cleanup of passed events
+- Configurable reminder settings per user
+- Support for both email and WhatsApp notifications
+
+#### Reminder Windows
+
+The system automatically sends reminders at the following intervals before an event:
+- 24 hours before
+- 12 hours before
+- 6 hours before
+- 1 hour before
+- 5 minutes before
+
+Each reminder window is tracked independently to ensure no duplicate notifications are sent.
 
 ## Development
 
