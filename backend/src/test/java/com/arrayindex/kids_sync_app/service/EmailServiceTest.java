@@ -2,31 +2,44 @@ package com.arrayindex.kids_sync_app.service;
 
 import com.arrayindex.kids_sync_app.service.impl.EmailServiceImpl;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-    "resend.from.email=${RESEND_FROM_EMAIL:arrayindexio@gmail.com}",
-    "resend.api.key=${RESEND_API_KEY:re_KRCgTUxY_KyEqeVAwRseao9Yo2sAL8p2k}"
-})
+@ExtendWith(MockitoExtension.class)
 public class EmailServiceTest {
 
-    @Autowired
-    private EmailService emailService;
+    @Mock
+    private JavaMailSender mailSender;
+
+    @InjectMocks
+    private EmailServiceImpl emailService;
 
     @Test
     public void testSendEmail() {
-        // This test will only pass if you have valid Resend API key in your environment
+        // Set up the required fields in EmailServiceImpl
+        ReflectionTestUtils.setField(emailService, "fromEmail", "test@example.com");
+        ReflectionTestUtils.setField(emailService, "isTestMode", false);
+        ReflectionTestUtils.setField(emailService, "testEmail", "test@example.com");
+
+        // Mock the JavaMailSender behavior
+        doNothing().when(mailSender).send(any(SimpleMailMessage.class));
+
+        // Test the sendEmail method
         boolean result = emailService.sendEmail(
-            "arrayindexio@gmail.com",
+            "test@example.com",
             "Test Email from KidSync",
             "This is a test email from the KidSync application. If you received this, the email service is working correctly!"
         );
-        
+
         assertTrue(result, "Email should be sent successfully");
     }
 }
