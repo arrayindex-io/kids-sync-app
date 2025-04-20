@@ -1,34 +1,47 @@
 version: '3.8'
 services:
-  # Backend service commented out - will run directly from IDE
-  # backend:
-  #   build: ./backend
-  #   ports:
-  #     - "8080:8080"
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/kidsync
-  #     - GMAIL_USERNAME=${GMAIL_USERNAME}
-  #     - GMAIL_PASSWORD=${GMAIL_PASSWORD}
-  #     - JWT_SECRET=${JWT_SECRET}
-  #     - SERVER_PORT=8080 
-  #   depends_on:
-  #     - mongo
-  #   networks:
-  #     - kidsync-net
-  #   volumes:
-  #      - backend-maven-repo:/root/.m2 
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - GMAIL_USERNAME=${GMAIL_USERNAME}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_WEB_CORS_ALLOWED_ORIGINS=${FRONTEND_URL}
+    networks:
+      - kidsync-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Frontend service commented out for now
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - kidsync-net
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${BACKEND_URL}
+      - NODE_ENV=production
+    networks:
+      - kidsync-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   mongo:
     image: mongo:6.0 # Using MongoDB 6.0 as specified
@@ -46,5 +59,4 @@ networks:
     driver: bridge
 
 volumes:
-  mongo-data:
-  # backend-maven-repo: # No longer needed if backend isn't built in Docker
+  mongo-data:  # backend-maven-repo: # No longer needed if backend isn't built in Docker

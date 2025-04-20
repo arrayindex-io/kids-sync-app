@@ -1,16 +1,8 @@
 package com.arrayindex.kids_sync_app.config;
 
-import io.github.cdimascio.dotenv.Dotenv;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class EnvConfig {
-
-    @Bean
-    public Dotenv dotenv() {
-        return Dotenv.configure()
-                .directory(".")
-                .load();
-    }
+    // Environment variables are automatically loaded by Spring Boot
 } 

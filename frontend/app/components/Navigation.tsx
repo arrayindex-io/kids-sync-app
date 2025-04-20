@@ -5,7 +5,7 @@ import { Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { api } from '../services/api'
+import { api, getToken, removeToken } from '../services/api'
 
 const navigation = [
   { name: 'Dashboard', href: '/' },
@@ -26,43 +26,35 @@ export default function Navigation() {
   const [userInitial, setUserInitial] = useState('')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
-  // Check authentication status
   const checkAuth = async () => {
     try {
-      // Skip auth check if we're on the login page
-      if (pathname === '/login') {
+      const token = getToken();
+      if (!token) {
         setIsAuthenticated(false);
         setUserInitial('');
         return;
       }
 
-      const user = await api.getCurrentUser();
-      
-      if (user && user.id && user.email) {
-        const initial = user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
-        setUserInitial(initial);
+      const userData = await api.getCurrentUser();
+      if (userData) {
         setIsAuthenticated(true);
+        setUserInitial(userData.name ? userData.name[0].toUpperCase() : userData.email[0].toUpperCase());
       } else {
         setIsAuthenticated(false);
         setUserInitial('');
+        removeToken();
       }
     } catch (error) {
-      console.error('Error checking auth:', error);
+      console.error('Auth check failed:', error);
       setIsAuthenticated(false);
       setUserInitial('');
+      removeToken();
     }
   }
 
-  // Check auth only on initial load
   useEffect(() => {
+    // Check auth on initial load and pathname changes
     checkAuth();
-  }, []);
-
-  // Check auth when pathname changes to/from login
-  useEffect(() => {
-    if (pathname === '/login' || pathname === '/') {
-      checkAuth();
-    }
   }, [pathname]);
 
   const handleLogout = async () => {

@@ -1,43 +1,46 @@
 "use client"
 
 // API base URL - adjust this to match your backend URL
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:8080/api';
 
 // Helper functions for token management
-const getToken = () => {
-  // Try to get token from localStorage first (for backward compatibility)
-  const localToken = localStorage.getItem('token');
-  console.log('Local storage token:', localToken ? 'exists' : 'not found');
-  if (localToken) return localToken;
-  
-  // If not in localStorage, try to get from cookies
+export const getToken = () => {
+  // Try to get token from cookies first (preferred method)
   const cookies = document.cookie.split(';');
   for (let i = 0; i < cookies.length; i++) {
     const cookie = cookies[i].trim();
     if (cookie.startsWith('token=')) {
       const token = cookie.substring(6);
-      console.log('Cookie token found');
       return token;
     }
   }
-  console.log('No token found in storage');
+  
+  // Fallback to localStorage for backward compatibility
+  const localToken = localStorage.getItem('token');
+  if (localToken) {
+    // If found in localStorage, sync to cookies
+    setToken(localToken);
+    return localToken;
+  }
+  
   return null;
 };
 
-const setToken = (token: string) => {
-  // Store in localStorage for backward compatibility
-  localStorage.setItem('token', token);
+export const setToken = (token: string) => {
+  // Store in cookies with secure flags
+  const secure = window.location.protocol === 'https:';
+  document.cookie = `token=${token}; path=/; max-age=86400${secure ? '; secure' : ''}; samesite=strict`;
   
-  // Also store in cookies for middleware access
-  document.cookie = `token=${token}; path=/; max-age=86400`; // 24 hours
+  // Also store in localStorage for backward compatibility
+  localStorage.setItem('token', token);
 };
 
-const removeToken = () => {
+export const removeToken = () => {
+  // Remove from cookies with proper expiration
+  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  
   // Remove from localStorage
   localStorage.removeItem('token');
-  
-  // Remove from cookies
-  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 };
 
 // Common headers for all requests

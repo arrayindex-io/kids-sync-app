@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { api } from '../services/api'
+import { api, getToken, setToken } from '../services/api'
 
 export default function Login() {
   const router = useRouter()
@@ -12,15 +12,15 @@ export default function Login() {
     password: '',
   })
   const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
     // Check if user is already logged in
-    const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+    const token = getToken();
     if (token) {
-      router.push('/');
+      router.replace('/');
     }
   }, [router]);
 
@@ -30,8 +30,19 @@ export default function Login() {
     setLoading(true)
 
     try {
-      await api.login(formData.email, formData.password)
-      router.push('/')
+      const response = await api.login(formData.email, formData.password)
+      if (response && response.token) {
+        // Set the token
+        setToken(response.token);
+        // Use router.replace for a cleaner navigation
+        router.replace('/');
+        // Force a page reload after a short delay to ensure state is updated
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      } else {
+        setError('Login failed: No token received')
+      }
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message || 'Invalid email or password')
@@ -43,34 +54,34 @@ export default function Login() {
   // Don't render the form until the component is mounted on the client
   if (!mounted) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-bold text-gray-700">
-                        Sign in to your account
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Loading...
-                    </p>
-                </div>
-            </div>
+      <div className="min-h-screen flex items-center justify-center bg-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-bold text-gray-700">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Loading...
+            </p>
+          </div>
         </div>
+      </div>
     )
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white text-gray-700 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full p-6 space-y-8 rounded-lg shadow-md">
-          <div>
-              <h2 className="mt-6 text-center text-3xl font-bold">
-                  Sign in to your account
-              </h2>
-              <p className="mt-2 text-center text-sm text-gray-600">
-                  Or{' '}
-                  <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">create a new account</Link>
-              </p>
-          </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit} >
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-bold">
+            Sign in to your account
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-600">
+            Or{' '}
+            <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">create a new account</Link>
+          </p>
+        </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="email-address" className="sr-only">
@@ -113,12 +124,12 @@ export default function Login() {
           )}
 
           <div>
-              <button
-                  type="submit"
-                  disabled={loading}
-                  className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                  {loading ? 'Signing in...' : 'Sign in'}
+            <button
+              type="submit"
+              disabled={loading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
         </form>
