@@ -21,13 +21,13 @@ import java.util.Comparator;
 
 /**
  * Implementation of the ReminderService for managing event reminders.
- *
+ * 
  * This class handles:
  * 1. Scheduling reminders for events
  * 2. Sending reminders at appropriate times before events
  * 3. Managing reminder windows (time periods before an event when reminders should be sent)
  * 4. Tracking which reminders have been sent
- *
+ * 
  * The implementation uses a scheduled task that runs every minute to check for events
  * that need reminders based on configurable time windows.
  */
@@ -70,7 +70,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     /**
      * Find a user by their email address
-     *
+     * 
      * @param email The email address of the user
      * @param eventId The ID of the event (for error reporting)
      * @return The user with the given email address
@@ -115,7 +115,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     /**
      * Generate a unique key for an event and reminder window combination
-     *
+     * 
      * @param eventId The ID of the event
      * @param windowKey The key of the reminder window
      * @return A unique key for the event and window combination
@@ -126,7 +126,7 @@ public class ReminderServiceImpl implements ReminderService {
 
     /**
      * Process reminders for a single event
-     *
+     * 
      * @param event The event to process reminders for
      * @param now The current time
      */
@@ -141,7 +141,7 @@ public class ReminderServiceImpl implements ReminderService {
             Duration timeUntilEvent = Duration.between(now, eventTime);
             double hoursUntilEvent = timeUntilEvent.toMinutes() / 60.0;
 
-            log.debug("Processing event: {}, Time until event: {} hours",
+            log.debug("Processing event: {}, Time until event: {} hours", 
                     event.getName(), String.format("%.2f", hoursUntilEvent));
 
             // Check if event has passed
@@ -157,7 +157,7 @@ public class ReminderServiceImpl implements ReminderService {
 
                 // Check if the event falls within this window and we haven't sent a reminder yet
                 if (isInWindow(hoursUntilEvent, window) && !hasReminderBeenSent(reminderKey)) {
-                    log.info("Sending {} reminder for event: {} to user: {}",
+                    log.info("Sending {} reminder for event: {} to user: {}", 
                             window.getDisplayName(), event.getName(), user.getEmail());
 
                     if (sendEventReminder(event, user.getEmail())) {
@@ -202,19 +202,19 @@ public class ReminderServiceImpl implements ReminderService {
 
     /**
      * Check if an event falls within a reminder window's time range
-     *
+     * 
      * @param hoursUntilEvent Hours until the event starts
      * @param window The reminder window to check against
      * @return true if the event is within the window's time range
      */
     private boolean isInWindow(double hoursUntilEvent, ReminderWindow window) {
-        return hoursUntilEvent <= window.getMaxDuration() &&
+        return hoursUntilEvent <= window.getMaxDuration() && 
                hoursUntilEvent >= window.getMinDuration();
     }
 
     /**
      * Check if a reminder has already been sent for a specific event and window
-     *
+     * 
      * @param reminderKey The unique key for the event and window combination
      * @return true if the reminder has already been sent
      */
@@ -224,10 +224,10 @@ public class ReminderServiceImpl implements ReminderService {
 
     /**
      * Mark a reminder as sent for a specific event and window
-     *
+     * 
      * @param reminderKey The unique key for the event and window combination
      */
     private void markReminderAsSent(String reminderKey) {
         sentReminders.put(reminderKey, true);
     }
-}
+} 
