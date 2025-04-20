@@ -269,6 +269,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-Anurag Saxena - [@arrayindex](https://github.com/arrayindex)
+Anurag Saxena - [@arrayindex-io](https://github.com/arrayindex-io)
 
-Project Link: [https://github.com/arrayindex/kids-sync-app](https://github.com/arrayindex/kids-sync-app) 
+Project Link: [https://github.com/arrayindex/kids-sync-app](https://github.com/arrayindex-io/kids-sync-app) 
