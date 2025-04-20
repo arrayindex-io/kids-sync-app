@@ -1,6 +1,9 @@
 package com.arrayindex.kids_sync_app.service;
 
 import com.arrayindex.kids_sync_app.model.Event;
+import com.arrayindex.kids_sync_app.model.ReminderWindow;
+
+import java.util.List;
 
 /**
  * Service interface for managing event reminders
@@ -30,4 +33,10 @@ public interface ReminderService {
      * @return true if the reminder was sent successfully, false otherwise
      */
     boolean sendEventReminder(Event event, String recipientEmail);
+
+    /**
+     * Get all configured reminder windows
+     * @return List of reminder window configurations
+     */
+    List<ReminderWindow> getReminderWindows();
 } 

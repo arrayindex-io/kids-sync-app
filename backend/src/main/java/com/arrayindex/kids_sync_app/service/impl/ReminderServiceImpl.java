@@ -1,6 +1,7 @@
 package com.arrayindex.kids_sync_app.service.impl;
 
 import com.arrayindex.kids_sync_app.model.Event;
+import com.arrayindex.kids_sync_app.model.ReminderWindow;
 import com.arrayindex.kids_sync_app.model.User;
 import com.arrayindex.kids_sync_app.repository.EventRepository;
 import com.arrayindex.kids_sync_app.repository.UserRepository;
@@ -14,7 +15,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Implementation of the ReminderService
@@ -28,6 +32,23 @@ public class ReminderServiceImpl implements ReminderService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final ConcurrentHashMap<String, Boolean> scheduledReminders = new ConcurrentHashMap<>();
+    
+    // Configurable reminder windows
+    private final List<ReminderWindow> reminderWindows = new ArrayList<>();
+    
+    // Initialize reminder windows
+    {
+        // Add reminder windows in order from longest to shortest
+        reminderWindows.add(new ReminderWindow("24h", 20, 24, true, "24 hours before"));
+        reminderWindows.add(new ReminderWindow("12h", 10, 12, true, "12 hours before"));
+        reminderWindows.add(new ReminderWindow("6h", 4, 6, true, "6 hours before"));
+        reminderWindows.add(new ReminderWindow("4h", 2, 4, true, "4 hours before"));
+        reminderWindows.add(new ReminderWindow("1h", 0.5, 1, false, "1 hour before"));
+        reminderWindows.add(new ReminderWindow("5m", 0, 0.083, false, "5 minutes before"));
+        
+        // Sort by duration (longest first)
+        reminderWindows.sort(Comparator.comparingDouble(ReminderWindow::getMaxDuration).reversed());
+    }
 
     @Override
     public void scheduleReminder(Event event) {
@@ -83,87 +104,28 @@ public class ReminderServiceImpl implements ReminderService {
                 
                 LocalDateTime eventTime = event.getDateTime();
                 Duration timeUntilEvent = Duration.between(now, eventTime);
-                long hoursUntilEvent = timeUntilEvent.toHours();
-                long minutesUntilEvent = timeUntilEvent.toMinutes();
+                double hoursUntilEvent = timeUntilEvent.toMinutes() / 60.0;
                 
-                log.info("Event: {}, Time until event: {} hours, {} minutes", 
-                        event.getName(), hoursUntilEvent, minutesUntilEvent);
+                log.info("Event: {}, Time until event: {:.2f} hours", 
+                        event.getName(), hoursUntilEvent);
                 
-                // Check if we've already sent a reminder for this time window
-                String reminderKey = event.getId() + "_" + getReminderWindow(hoursUntilEvent, minutesUntilEvent);
-                
-                // Send reminders at specific intervals with proper ranges
-                if (hoursUntilEvent <= 24 && hoursUntilEvent > 20 && !hasReminderBeenSent(reminderKey)) {
-                    log.info("24-hour check PASSED for event: {}. Hours until event: {} (between 20-24 hours)", 
-                            event.getName(), hoursUntilEvent);
-                    log.info("Sending 24-hour reminder for event: {} to user: {}", event.getName(), user.getEmail());
-                    if (sendEventReminder(event, user.getEmail())) {
-                        markReminderAsSent(reminderKey);
+                // Check each reminder window
+                for (ReminderWindow window : reminderWindows) {
+                    String reminderKey = event.getId() + "_" + window.getKey();
+                    
+                    // Check if the event falls within this window and we haven't sent a reminder yet
+                    if (isInWindow(hoursUntilEvent, window) && !hasReminderBeenSent(reminderKey)) {
+                        log.info("{} check PASSED for event: {}. Hours until event: {:.2f} (between {:.1f}-{:.1f} hours)", 
+                                window.getKey(), event.getName(), hoursUntilEvent, 
+                                window.getMinDuration(), window.getMaxDuration());
+                        
+                        log.info("Sending {} reminder for event: {} to user: {}", 
+                                window.getKey(), event.getName(), user.getEmail());
+                        
+                        if (sendEventReminder(event, user.getEmail())) {
+                            markReminderAsSent(reminderKey);
+                        }
                     }
-                } else if (hoursUntilEvent <= 20 && hoursUntilEvent > 15) {
-                    log.info("24-hour check FAILED for event: {}. Hours until event: {} (must be between 20-24 hours)", 
-                            event.getName(), hoursUntilEvent);
-                }
-                
-                if (hoursUntilEvent <= 12 && hoursUntilEvent > 10 && !hasReminderBeenSent(event.getId() + "_12h")) {
-                    log.info("12-hour check PASSED for event: {}. Hours until event: {} (between 10-12 hours)", 
-                            event.getName(), hoursUntilEvent);
-                    log.info("Sending 12-hour reminder for event: {} to user: {}", event.getName(), user.getEmail());
-                    if (sendEventReminder(event, user.getEmail())) {
-                        markReminderAsSent(event.getId() + "_12h");
-                    }
-                } else if (hoursUntilEvent <= 10 && hoursUntilEvent > 6) {
-                    log.info("12-hour check FAILED for event: {}. Hours until event: {} (must be between 10-12 hours)", 
-                            event.getName(), hoursUntilEvent);
-                }
-                
-                if (hoursUntilEvent <= 6 && hoursUntilEvent > 4 && !hasReminderBeenSent(event.getId() + "_6h")) {
-                    log.info("6-hour check PASSED for event: {}. Hours until event: {} (between 4-6 hours)", 
-                            event.getName(), hoursUntilEvent);
-                    log.info("Sending 6-hour reminder for event: {} to user: {}", event.getName(), user.getEmail());
-                    if (sendEventReminder(event, user.getEmail())) {
-                        markReminderAsSent(event.getId() + "_6h");
-                    }
-                } else if (hoursUntilEvent <= 4 && hoursUntilEvent > 2) {
-                    log.info("6-hour check FAILED for event: {}. Hours until event: {} (must be between 4-6 hours)", 
-                            event.getName(), hoursUntilEvent);
-                }
-                
-                // NEW: Add a specific window for events 2-4 hours away
-                if (hoursUntilEvent <= 4 && hoursUntilEvent >= 2 && !hasReminderBeenSent(event.getId() + "_4h")) {
-                    log.info("4-hour check PASSED for event: {}. Hours until event: {} (between 2-4 hours)", 
-                            event.getName(), hoursUntilEvent);
-                    log.info("Sending 4-hour reminder for event: {} to user: {}", event.getName(), user.getEmail());
-                    if (sendEventReminder(event, user.getEmail())) {
-                        markReminderAsSent(event.getId() + "_4h");
-                    }
-                } else if (hoursUntilEvent < 2 && hoursUntilEvent > 1) {
-                    log.info("4-hour check FAILED for event: {}. Hours until event: {} (must be between 2-4 hours)", 
-                            event.getName(), hoursUntilEvent);
-                }
-                
-                if (hoursUntilEvent <= 1 && minutesUntilEvent > 30 && !hasReminderBeenSent(event.getId() + "_1h")) {
-                    log.info("1-hour check PASSED for event: {}. Hours until event: {} (between 30-60 minutes)", 
-                            event.getName(), hoursUntilEvent);
-                    log.info("Sending 1-hour reminder for event: {} to user: {}", event.getName(), user.getEmail());
-                    if (sendEventReminder(event, user.getEmail())) {
-                        markReminderAsSent(event.getId() + "_1h");
-                    }
-                } else if (hoursUntilEvent <= 1 && minutesUntilEvent <= 30 && minutesUntilEvent > 5) {
-                    log.info("1-hour check FAILED for event: {}. Minutes until event: {} (must be between 30-60 minutes)", 
-                            event.getName(), minutesUntilEvent);
-                }
-                
-                if (minutesUntilEvent <= 5 && minutesUntilEvent > 0 && !hasReminderBeenSent(event.getId() + "_5m")) {
-                    log.info("5-minute check PASSED for event: {}. Minutes until event: {} (between 0-5 minutes)", 
-                            event.getName(), minutesUntilEvent);
-                    log.info("Sending 5-minute reminder for event: {} to user: {}", event.getName(), user.getEmail());
-                    if (sendEventReminder(event, user.getEmail())) {
-                        markReminderAsSent(event.getId() + "_5m");
-                    }
-                } else if (minutesUntilEvent <= 0) {
-                    log.info("5-minute check FAILED for event: {}. Minutes until event: {} (must be between 0-5 minutes)", 
-                            event.getName(), minutesUntilEvent);
                 }
                 
                 // If the event has passed, remove it from scheduled reminders
@@ -181,18 +143,17 @@ public class ReminderServiceImpl implements ReminderService {
     public boolean sendEventReminder(Event event, String recipientEmail) {
         return emailService.sendEventReminder(event, recipientEmail);
     }
-
+    
+    @Override
+    public List<ReminderWindow> getReminderWindows() {
+        return new ArrayList<>(reminderWindows);
+    }
+    
     /**
-     * Helper method to determine which reminder window an event falls into
+     * Helper method to check if an event falls within a reminder window
      */
-    private String getReminderWindow(long hoursUntilEvent, long minutesUntilEvent) {
-        if (hoursUntilEvent <= 24 && hoursUntilEvent > 20) return "24h";
-        if (hoursUntilEvent <= 12 && hoursUntilEvent > 10) return "12h";
-        if (hoursUntilEvent <= 6 && hoursUntilEvent > 4) return "6h";
-        if (hoursUntilEvent <= 4 && hoursUntilEvent >= 2) return "4h";
-        if (hoursUntilEvent <= 1 && minutesUntilEvent > 30) return "1h";
-        if (minutesUntilEvent <= 5 && minutesUntilEvent > 0) return "5m";
-        return "none";
+    private boolean isInWindow(double hoursUntilEvent, ReminderWindow window) {
+        return hoursUntilEvent <= window.getMaxDuration() && hoursUntilEvent >= window.getMinDuration();
     }
 
     private boolean hasReminderBeenSent(String reminderKey) {
