@@ -2,8 +2,8 @@ services:
   - type: web
     name: kids-sync-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    dockerCommand: docker build -t frontend -f frontend/Dockerfile frontend
+    dockerContext: .
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://kids-sync-backend.onrender.com
@@ -15,8 +15,8 @@ services:
   - type: web
     name: kids-sync-backend
     env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerCommand: docker build -t backend -f backend/Dockerfile backend
+    dockerContext: .
     envVars:
       - key: MONGODB_URI
         sync: false
